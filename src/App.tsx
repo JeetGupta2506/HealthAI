@@ -1,0 +1,114 @@
+import React, { useState, useEffect } from 'react';
+import { Sidebar } from './components/layout/Sidebar';
+import { Header } from './components/layout/Header';
+import { HealthMetrics } from './components/dashboard/HealthMetrics';
+import { AIChat } from './components/chat/AIChat';
+import { MedicationReminders } from './components/dashboard/MedicationReminders';
+import { HealthInsights } from './components/dashboard/HealthInsights';
+import { SymptomChecker } from './components/symptoms/SymptomChecker';
+
+function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [healthStatus, setHealthStatus] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('http://127.0.0.1:8000/health');
+        if (!res.ok) throw new Error('Failed to fetch backend health');
+        const data = await res.json();
+        setHealthStatus(data.status);
+      } catch (err: any) {
+        setError(err.message || 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHealth();
+  }, []);
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="lg:col-span-2">
+              <HealthMetrics />
+            </div>
+            <MedicationReminders />
+            <HealthInsights />
+          </div>
+        );
+      case 'chat':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <AIChat />
+          </div>
+        );
+      case 'symptoms':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <SymptomChecker />
+          </div>
+        );
+      case 'medications':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <MedicationReminders />
+          </div>
+        );
+      case 'insights':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <HealthInsights />
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Health Reports</h2>
+              <p className="text-gray-600">Detailed health reports and analytics coming soon...</p>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="lg:col-span-2">
+              <HealthMetrics />
+            </div>
+            <MedicationReminders />
+            <HealthInsights />
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="mb-4">
+            {loading ? (
+              <span className="text-gray-500">Checking backend health...</span>
+            ) : error ? (
+              <span className="text-red-500">Backend error: {error}</span>
+            ) : (
+              <span className="text-green-600">Backend health: {healthStatus}</span>
+            )}
+          </div>
+          {renderContent()}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default App;
