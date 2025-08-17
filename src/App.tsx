@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LandingPage } from './components/landing/LandingPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { HealthMetrics } from './components/dashboard/HealthMetrics';
@@ -9,6 +10,7 @@ import { SymptomChecker } from './components/symptoms/SymptomChecker';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showLanding, setShowLanding] = useState(true);
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,11 @@ function App() {
     };
     fetchHealth();
   }, []);
+
+  // Show landing page by default
+  if (showLanding) {
+    return <LandingPage />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
