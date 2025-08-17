@@ -14,7 +14,7 @@ const agentTypes = [
 const mockMessages: ChatMessage[] = [
   {
     id: '1',
-    content: 'Hello! I\'m your AI health assistant. I have specialized agents to help with different aspects of your health. How can I assist you today?',
+    content: "Hello! I'm your AI health assistant. I have specialized agents to help with different aspects of your health. How can I assist you today?",
     sender: 'ai',
     timestamp: new Date(Date.now() - 5 * 60 * 1000),
     agentType: 'general'
@@ -26,6 +26,7 @@ export function AIChat() {
   const [inputValue, setInputValue] = useState('');
   const [selectedAgent, setSelectedAgent] = useState<string>('general');
   const [isTyping, setIsTyping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -49,29 +50,39 @@ export function AIChat() {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
+    setError(null);
 
-    // Simulate AI response
-    setTimeout(() => {
+    // Debug log
+    console.log("Sending to backend:", inputValue, selectedAgent);
+
+    try {
+      const response = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: inputValue,
+          agent_type: selectedAgent
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+      const data = await response.json();
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: getAgentResponse(inputValue, selectedAgent),
+        content: data.response,
         sender: 'ai',
         timestamp: new Date(),
         agentType: selectedAgent as any
       };
       setMessages(prev => [...prev, aiMessage]);
+    } catch (err: any) {
+      setError('Error communicating with AI backend.');
+    } finally {
       setIsTyping(false);
-    }, 1500);
-  };
-
-  const getAgentResponse = (input: string, agent: string) => {
-    const responses = {
-      general: "I understand you're looking for general health guidance. Based on your query, I recommend consulting with a healthcare professional for personalized advice. In the meantime, here are some general wellness tips...",
-      symptom: "I see you're experiencing some symptoms. While I can provide general information, please remember that this doesn't replace professional medical diagnosis. Based on what you've described...",
-      nutrition: "Great question about nutrition! A balanced diet is crucial for overall health. Here are some evidence-based recommendations tailored to your needs...",
-      'mental-health': "Thank you for sharing. Mental health is just as important as physical health. Here are some strategies and resources that might help..."
-    };
-    return responses[agent as keyof typeof responses] || responses.general;
+    }
   };
 
   const getAgentInfo = (agentType?: string) => {
@@ -82,9 +93,8 @@ export function AIChat() {
     <Card className="h-[600px] flex flex-col">
       <CardHeader 
         title="AI Health Assistant" 
-        subtitle="Multi-agent AI system powered by LangGraph & CrewAI"
+        subtitle="Multi-agent AI system powered by Gemini, LangGraph & CrewAI"
       />
-      
       {/* Agent Selector */}
       <div className="px-6 pb-4">
         <div className="flex flex-wrap gap-2">
@@ -104,7 +114,6 @@ export function AIChat() {
           ))}
         </div>
       </div>
-
       {/* Messages */}
       <CardContent className="flex-1 overflow-y-auto">
         <div className="space-y-4">
@@ -129,7 +138,6 @@ export function AIChat() {
               </div>
             </div>
           ))}
-          
           {isTyping && (
             <div className="flex justify-start">
               <div className="flex items-center gap-3">
@@ -146,10 +154,12 @@ export function AIChat() {
               </div>
             </div>
           )}
+          {error && (
+            <div className="text-red-500 text-sm px-4">{error}</div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </CardContent>
-
       {/* Input */}
       <div className="px-6 pb-6">
         <div className="flex gap-2">
@@ -160,6 +170,7 @@ export function AIChat() {
             placeholder={`Ask the ${getAgentInfo(selectedAgent).name} agent...`}
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            disabled={isTyping}
           />
           <Button onClick={handleSendMessage} disabled={!inputValue.trim() || isTyping}>
             <Send className="w-4 h-4" />

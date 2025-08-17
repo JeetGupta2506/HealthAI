@@ -76,7 +76,11 @@ const stats = [
   { number: '4.9/5', label: 'User Rating' }
 ];
 
-export function LandingPage() {
+interface LandingPageProps {
+  onStartNow?: () => void;
+}
+
+export function LandingPage({ onStartNow }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -127,7 +131,7 @@ export function LandingPage() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="group">
+                <Button size="lg" className="group" onClick={onStartNow}>
                   Start Your Health Journey
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>

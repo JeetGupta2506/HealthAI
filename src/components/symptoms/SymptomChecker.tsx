@@ -33,8 +33,10 @@ const mockAssessment = {
 export function SymptomChecker() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<Symptom[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAssessment, setShowAssessment] = useState(false);
   const [currentStep, setCurrentStep] = useState<'symptoms' | 'details' | 'assessment'>('symptoms');
+  const [assessment, setAssessment] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const addSymptom = (symptomName: string) => {
     const newSymptom: Symptom = {
@@ -78,58 +80,84 @@ export function SymptomChecker() {
     !selectedSymptoms.find(s => s.name === symptom)
   );
 
+  const getAIAssessment = async () => {
+    setLoading(true);
+    setError(null);
+    setAssessment(null);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/assess-symptoms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symptoms: selectedSymptoms.map(({ name, severity, bodyPart }) => ({ name, severity, bodyPart }))
+        })
+      });
+      if (!response.ok) throw new Error('Failed to get assessment');
+      const data = await response.json();
+      setAssessment(data);
+      setCurrentStep('assessment');
+    } catch (err: any) {
+      setError(err.message || 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (currentStep === 'assessment') {
     return (
       <Card>
         <CardHeader title="Health Assessment Results" subtitle="AI-powered analysis of your symptoms" />
         <CardContent className="space-y-6">
-          {/* Risk Level */}
-          <div className={`p-4 rounded-lg border-2 ${getRiskColor(mockAssessment.riskLevel)}`}>
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-6 h-6" />
-              <div>
-                <h3 className="font-semibold capitalize">Risk Level: {mockAssessment.riskLevel}</h3>
-                <p className="text-sm opacity-80">Based on your reported symptoms</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Possible Conditions */}
-          <div>
-            <h3 className="font-semibold text-gray-800 mb-3">Possible Conditions</h3>
-            <div className="space-y-3">
-              {mockAssessment.conditions.map((condition, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          {loading && <div className="text-blue-600">Loading assessment...</div>}
+          {error && <div className="text-red-600">{error}</div>}
+          {assessment && (
+            <>
+              {/* Risk Level */}
+              <div className={`p-4 rounded-lg border-2 ${getRiskColor(assessment.riskLevel)}`}>
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-6 h-6" />
                   <div>
-                    <p className="font-medium">{condition.name}</p>
-                    <p className="text-sm text-gray-600">{condition.probability}% match</p>
+                    <h3 className="font-semibold capitalize">Risk Level: {assessment.riskLevel}</h3>
+                    <p className="text-sm opacity-80">Based on your reported symptoms</p>
                   </div>
-                  {condition.urgent && (
-                    <div className="flex items-center gap-1 text-red-600">
-                      <AlertCircle className="w-4 h-4" />
-                      <span className="text-sm">Urgent</span>
+                </div>
+              </div>
+              {/* Possible Conditions */}
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3">Possible Conditions</h3>
+                <div className="space-y-3">
+                  {assessment.conditions && assessment.conditions.length > 0 ? assessment.conditions.map((condition: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{condition.name}</p>
+                        {condition.probability && <p className="text-sm text-gray-600">{condition.probability}% match</p>}
+                      </div>
+                      {condition.urgent && (
+                        <div className="flex items-center gap-1 text-red-600">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="text-sm">Urgent</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  )) : <div className="text-gray-500">No conditions found.</div>}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recommendations */}
-          <div>
-            <h3 className="font-semibold text-gray-800 mb-3">Recommendations</h3>
-            <div className="space-y-2">
-              {mockAssessment.recommendations.map((rec, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-blue-800">{rec}</p>
+              </div>
+              {/* Recommendations */}
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-3">Recommendations</h3>
+                <div className="space-y-2">
+                  {assessment.recommendations && assessment.recommendations.length > 0 ? assessment.recommendations.map((rec: string, index: number) => (
+                    <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-blue-800">{rec}</p>
+                    </div>
+                  )) : <div className="text-gray-500">No recommendations found.</div>}
                 </div>
-              ))}
-            </div>
-          </div>
-
+              </div>
+            </>
+          )}
           <div className="flex gap-3">
-            <Button onClick={() => setCurrentStep('symptoms')}>
+            <Button onClick={() => { setCurrentStep('symptoms'); setAssessment(null); }}>
               Check New Symptoms
             </Button>
             <Button variant="outline">
@@ -305,13 +333,14 @@ export function SymptomChecker() {
             ))}
             
             <div className="flex gap-3">
-              <Button onClick={() => setCurrentStep('assessment')}>
-                Get AI Assessment
+              <Button onClick={getAIAssessment} disabled={loading}>
+                {loading ? 'Getting Assessment...' : 'Get AI Assessment'}
               </Button>
-              <Button variant="ghost" onClick={() => setCurrentStep('symptoms')}>
+              <Button variant="ghost" onClick={() => setCurrentStep('symptoms')} disabled={loading}>
                 Back
               </Button>
             </div>
+            {error && <div className="text-red-600 mt-2">{error}</div>}
           </div>
         )}
       </CardContent>

@@ -38,7 +38,7 @@ function App() {
   if (showLanding) {
     return (
       <ThemeProvider>
-        <LandingPage />
+        <LandingPage onStartNow={() => setShowLanding(false)} />
       </ThemeProvider>
     );
   }

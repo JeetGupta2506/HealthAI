@@ -1,2 +1,8 @@
 fastapi
 uvicorn
+langchain
+langgraph
+crewai
+openai
+langchain-google-genai
+python-dotenv
