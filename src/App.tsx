@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { LandingPage } from './components/landing/LandingPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -35,7 +36,11 @@ function App() {
 
   // Show landing page by default
   if (showLanding) {
-    return <LandingPage />;
+    return (
+      <ThemeProvider>
+        <LandingPage />
+      </ThemeProvider>
+    );
   }
 
   const renderContent = () => {
@@ -97,24 +102,26 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="mb-4">
-            {loading ? (
-              <span className="text-gray-500">Checking backend health...</span>
-            ) : error ? (
-              <span className="text-red-500">Backend error: {error}</span>
-            ) : (
-              <span className="text-green-600">Backend health: {healthStatus}</span>
-            )}
-          </div>
-          {renderContent()}
-        </main>
+    <ThemeProvider>
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="mb-4">
+              {loading ? (
+                <span className="text-gray-500 dark:text-gray-400">Checking backend health...</span>
+              ) : error ? (
+                <span className="text-red-500 dark:text-red-400">Backend error: {error}</span>
+              ) : (
+                <span className="text-green-600 dark:text-green-400">Backend health: {healthStatus}</span>
+              )}
+            </div>
+            {renderContent()}
+          </main>
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 }
 

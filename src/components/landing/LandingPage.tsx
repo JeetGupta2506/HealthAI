@@ -16,6 +16,7 @@ import {
   Apple
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { SimpleThemeToggle } from '../ui/ThemeToggle';
 
 const features = [
   {
@@ -99,6 +100,7 @@ export function LandingPage() {
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm">Sign In</Button>
               <Button size="sm">Get Started</Button>
+              <SimpleThemeToggle />
             </div>
           </div>
         </div>
