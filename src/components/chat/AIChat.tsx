@@ -3,6 +3,7 @@ import { Send, Bot, User, Brain, Stethoscope, Apple, Heart } from 'lucide-react'
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ChatMessage } from '../../types/health';
+import ReactMarkdown from "react-markdown"; 
 
 const agentTypes = [
   { id: 'general', name: 'General Health', icon: <Stethoscope className="w-4 h-4" />, color: 'bg-blue-500' },
@@ -130,7 +131,11 @@ export function AIChat() {
                     ? 'bg-blue-600 text-white' 
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <div className="prose prose-sm max-w-none">
+                    <ReactMarkdown>
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
                   <p className={`text-xs mt-2 opacity-70`}>
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
