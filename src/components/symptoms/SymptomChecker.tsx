@@ -59,19 +59,19 @@ export function SymptomChecker() {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'mild': return 'text-green-600 bg-green-50 border-green-200';
-      case 'moderate': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'severe': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'mild': return 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-gray-700 border-green-200';
+      case 'moderate': return 'text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-gray-800 dark:border-gray-700 border-yellow-200';
+      case 'severe': return 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-gray-800 dark:border-gray-700 border-red-200';
+      default: return 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-800 dark:border-gray-700 border-gray-200';
     }
   };
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'low': return 'text-green-600 bg-green-50';
-      case 'moderate': return 'text-yellow-600 bg-yellow-50';
-      case 'high': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'low': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-gray-800';
+      case 'moderate': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-gray-800';
+      case 'high': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-gray-800';
+      default: return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
     }
   };
 
@@ -113,45 +113,45 @@ export function SymptomChecker() {
           {assessment && (
             <>
               {/* Risk Level */}
-              <div className={`p-4 rounded-lg border-2 ${getRiskColor(assessment.riskLevel)}`}>
+              <div className={`p-4 rounded-lg border-2 ${getRiskColor(assessment.riskLevel)} border-gray-200 dark:border-gray-700`}>
                 <div className="flex items-center gap-3">
-                  <AlertCircle className="w-6 h-6" />
+                  <AlertCircle className="w-6 h-6 text-current" />
                   <div>
-                    <h3 className="font-semibold capitalize">Risk Level: {assessment.riskLevel}</h3>
-                    <p className="text-sm opacity-80">Based on your reported symptoms</p>
+                    <h3 className="font-semibold capitalize text-gray-800 dark:text-gray-100">Risk Level: {assessment.riskLevel}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Based on your reported symptoms</p>
                   </div>
                 </div>
               </div>
               {/* Possible Conditions */}
               <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Possible Conditions</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Possible Conditions</h3>
                 <div className="space-y-3">
                   {assessment.conditions && assessment.conditions.length > 0 ? assessment.conditions.map((condition: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <div>
-                        <p className="font-medium">{condition.name}</p>
-                        {condition.probability && <p className="text-sm text-gray-600">{condition.probability}% match</p>}
+                        <p className="font-medium text-gray-800 dark:text-gray-100">{condition.name}</p>
+                        {condition.probability && <p className="text-sm text-gray-600 dark:text-gray-400">{condition.probability}% match</p>}
                       </div>
                       {condition.urgent && (
-                        <div className="flex items-center gap-1 text-red-600">
+                        <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
                           <AlertCircle className="w-4 h-4" />
                           <span className="text-sm">Urgent</span>
                         </div>
                       )}
                     </div>
-                  )) : <div className="text-gray-500">No conditions found.</div>}
+                  )) : <div className="text-gray-500 dark:text-gray-400">No conditions found.</div>}
                 </div>
               </div>
               {/* Recommendations */}
               <div>
-                <h3 className="font-semibold text-gray-800 mb-3">Recommendations</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Recommendations</h3>
                 <div className="space-y-2">
                   {assessment.recommendations && assessment.recommendations.length > 0 ? assessment.recommendations.map((rec: string, index: number) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-blue-800">{rec}</p>
+                    <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-gray-800 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-blue-800 dark:text-gray-100">{rec}</p>
                     </div>
-                  )) : <div className="text-gray-500">No recommendations found.</div>}
+                  )) : <div className="text-gray-500 dark:text-gray-400">No recommendations found.</div>}
                 </div>
               </div>
             </>
@@ -180,8 +180,8 @@ export function SymptomChecker() {
       />
       <CardContent className="space-y-6">
         {/* Step Indicator */}
-        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-          <div className={`flex items-center gap-2 ${currentStep === 'symptoms' ? 'text-blue-600' : 'text-green-600'}`}>
+        <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className={`flex items-center gap-2 ${currentStep === 'symptoms' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
               currentStep === 'symptoms' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
             }`}>
@@ -189,18 +189,18 @@ export function SymptomChecker() {
             </div>
             <span className="font-medium">Select Symptoms</span>
           </div>
-          <ArrowRight className="w-4 h-4 text-gray-400" />
-          <div className={`flex items-center gap-2 ${currentStep === 'details' ? 'text-blue-600' : 'text-gray-400'}`}>
+          <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <div className={`flex items-center gap-2 ${currentStep === 'details' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep === 'details' ? 'bg-blue-600 text-white' : 'border-2 border-gray-300 text-gray-400'
+              currentStep === 'details' ? 'bg-blue-600 text-white' : 'border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
             }`}>
               2
             </div>
             <span className="font-medium">Add Details</span>
           </div>
-          <ArrowRight className="w-4 h-4 text-gray-400" />
-          <div className={`flex items-center gap-2 text-gray-400`}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center border-2 border-gray-300 text-gray-400">
+          <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <div className={`flex items-center gap-2 text-gray-400 dark:text-gray-500`}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500">
               3
             </div>
             <span className="font-medium">Get Assessment</span>
@@ -211,28 +211,28 @@ export function SymptomChecker() {
           <>
             {/* Symptom Search */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Search and select your symptoms
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Type a symptom..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
               
               {/* Symptom Suggestions */}
               {searchTerm && filteredSymptoms.length > 0 && (
-                <div className="mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                <div className="mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                   {filteredSymptoms.map((symptom) => (
                     <button
                       key={symptom}
                       onClick={() => addSymptom(symptom)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors"
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-800 dark:text-gray-100"
                     >
                       {symptom}
                     </button>
@@ -243,13 +243,13 @@ export function SymptomChecker() {
 
             {/* Common Symptoms */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-3">Common symptoms:</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Common symptoms:</p>
               <div className="flex flex-wrap gap-2">
                 {commonSymptoms.filter(s => !selectedSymptoms.find(sel => sel.name === s)).map((symptom) => (
                   <button
                     key={symptom}
                     onClick={() => addSymptom(symptom)}
-                    className="px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-full transition-all duration-200"
+                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-700 hover:text-blue-700 dark:hover:text-gray-100 rounded-full transition-all duration-200"
                   >
                     {symptom}
                   </button>
@@ -260,14 +260,14 @@ export function SymptomChecker() {
             {/* Selected Symptoms */}
             {selectedSymptoms.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-3">Selected symptoms:</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Selected symptoms:</p>
                 <div className="space-y-2">
                   {selectedSymptoms.map((symptom) => (
-                    <div key={symptom.id} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <span className="font-medium flex-1">{symptom.name}</span>
+                    <div key={symptom.id} className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-gray-700">
+                      <span className="font-medium flex-1 text-gray-800 dark:text-gray-100">{symptom.name}</span>
                       <button
                         onClick={() => removeSymptom(symptom.id)}
-                        className="text-red-600 hover:text-red-700 text-sm"
+                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm"
                       >
                         Remove
                       </button>
@@ -289,21 +289,21 @@ export function SymptomChecker() {
 
         {currentStep === 'details' && (
           <div className="space-y-4">
-            <h3 className="font-semibold text-gray-800">Provide more details about your symptoms</h3>
+            <h3 className="font-semibold text-gray-800 dark:text-gray-100">Provide more details about your symptoms</h3>
             
             {selectedSymptoms.map((symptom) => (
-              <div key={symptom.id} className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-3">{symptom.name}</h4>
+              <div key={symptom.id} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h4 className="font-medium text-gray-800 dark:text-gray-100 mb-3">{symptom.name}</h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Severity
                     </label>
                     <select
                       value={symptom.severity}
                       onChange={(e) => updateSymptom(symptom.id, { severity: e.target.value as 'mild' | 'moderate' | 'severe' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="mild">Mild</option>
                       <option value="moderate">Moderate</option>
@@ -312,13 +312,13 @@ export function SymptomChecker() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Body Part
                     </label>
                     <select
                       value={symptom.bodyPart}
                       onChange={(e) => updateSymptom(symptom.id, { bodyPart: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     >
                       <option value="general">General</option>
                       <option value="head">Head</option>
@@ -340,7 +340,7 @@ export function SymptomChecker() {
                 Back
               </Button>
             </div>
-            {error && <div className="text-red-600 mt-2">{error}</div>}
+            {error && <div className="text-red-600 dark:text-red-400 mt-2">{error}</div>}
           </div>
         )}
       </CardContent>

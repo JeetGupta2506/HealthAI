@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon} from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export function ThemeToggle() {
@@ -8,7 +8,7 @@ export function ThemeToggle() {
   const themes = [
     { value: 'light' as const, icon: Sun, label: 'Light mode' },
     { value: 'dark' as const, icon: Moon, label: 'Dark mode' },
-    { value: 'system' as const, icon: Monitor, label: 'System preference' }
+
   ];
 
   return (

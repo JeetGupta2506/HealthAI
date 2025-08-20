@@ -1,4 +1,4 @@
-import React from 'react';
+ 
 import { Lightbulb, TrendingUp, Shield, Brain } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { HealthInsight } from '../../types/health';
@@ -55,10 +55,10 @@ const getCategoryIcon = (category: string) => {
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case 'high': return 'border-red-200 bg-red-50';
-    case 'medium': return 'border-yellow-200 bg-yellow-50';
-    case 'low': return 'border-green-200 bg-green-50';
-    default: return 'border-gray-200 bg-gray-50';
+    case 'high': return 'border-red-200 bg-red-50 dark:border-gray-700 dark:from-gray-800 dark:to-gray-700';
+    case 'medium': return 'border-yellow-200 bg-yellow-50 dark:border-gray-700 dark:from-gray-800 dark:to-gray-700';
+    case 'low': return 'border-green-200 bg-green-50 dark:border-gray-700 dark:from-gray-800 dark:to-gray-700';
+    default: return 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:from-gray-800 dark:to-gray-700';
   }
 };
 
@@ -81,21 +81,21 @@ export function HealthInsights() {
       <CardContent>
         <div className="space-y-4">
           {mockInsights.map((insight) => (
-            <div key={insight.id} className={`p-4 rounded-lg border-2 ${getPriorityColor(insight.priority)}`}>
+            <div key={insight.id} className={`p-4 rounded-lg border-2 bg-gradient-to-r ${getPriorityColor(insight.priority)}`}>
               <div className="flex items-start gap-3">
-                <div className="text-blue-600">
+                <div className="text-blue-600 dark:text-blue-400">
                   {getCategoryIcon(insight.category)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-semibold text-gray-800">{insight.title}</h4>
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100">{insight.title}</h4>
                     <div className={`w-2 h-2 rounded-full ${getPriorityDot(insight.priority)}`}></div>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-3">{insight.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-3">{insight.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 capitalize">{insight.category}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{insight.category}</span>
                     {insight.actionable && (
-                      <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                      <button className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                         Take Action →
                       </button>
                     )}

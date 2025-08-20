@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Brain, Stethoscope, Apple, Heart } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -105,7 +105,7 @@ export function AIChat() {
               className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 selectedAgent === agent.id 
                   ? `${agent.color} text-white shadow-md` 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
               }`}
             >
               {agent.icon}
@@ -128,7 +128,7 @@ export function AIChat() {
                 <div className={`rounded-2xl px-4 py-3 ${
                   message.sender === 'user' 
                     ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-100 text-gray-800'
+                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
                 }`}>
                   <p className="text-sm leading-relaxed">{message.content}</p>
                   <p className={`text-xs mt-2 opacity-70`}>
@@ -142,13 +142,13 @@ export function AIChat() {
             <div className="flex justify-start">
               <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAgentInfo(selectedAgent).color} text-white`}>
-                  <Bot className="w-4 h-4" />
+                  <Bot className="w-5 h-5" />
                 </div>
-                <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -168,7 +168,7 @@ export function AIChat() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder={`Ask the ${getAgentInfo(selectedAgent).name} agent...`}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             disabled={isTyping}
           />

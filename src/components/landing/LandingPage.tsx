@@ -1,19 +1,13 @@
-import React from 'react';
 import { 
   Heart, 
   Brain, 
   Shield, 
   Zap, 
-  Users, 
-  Award, 
   ArrowRight, 
-  CheckCircle,
   Star,
   Play,
   Activity,
-  MessageSquare,
-  Stethoscope,
-  Apple
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { SimpleThemeToggle } from '../ui/ThemeToggle';
@@ -69,12 +63,7 @@ const testimonials = [
   }
 ];
 
-const stats = [
-  { number: '50K+', label: 'Active Users' },
-  { number: '1M+', label: 'Health Insights Generated' },
-  { number: '99.9%', label: 'Uptime' },
-  { number: '4.9/5', label: 'User Rating' }
-];
+
 
 interface LandingPageProps {
   onStartNow?: () => void;
@@ -82,23 +71,22 @@ interface LandingPageProps {
 
 export function LandingPage({ onStartNow }: LandingPageProps) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
+      <nav className="fixed top-0 w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-700 z-50 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center">
                 <Activity className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-800">HealthAI</span>
+              <span className="text-xl font-bold text-gray-800 dark:text-gray-100">HealthAI</span>
             </div>
             
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-800 transition-colors">Features</a>
-              <a href="#how-it-works" className="text-gray-600 hover:text-gray-800 transition-colors">How it Works</a>
-              <a href="#testimonials" className="text-gray-600 hover:text-gray-800 transition-colors">Testimonials</a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-800 transition-colors">Pricing</a>
+              <a href="#features" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors">Features</a>
+              <a href="#how-it-works" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors">How it Works</a>
+              <a href="#testimonials" className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors">Testimonials</a>
             </div>
             
             <div className="flex items-center gap-4">
@@ -111,20 +99,20 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-50 via-white to-green-50">
+      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded-full text-sm font-medium transition-colors duration-200">
                   <Zap className="w-4 h-4" />
                   Powered by Advanced AI
                 </div>
-                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
                   Your AI-Powered
                   <span className="bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent"> Health Companion</span>
                 </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
+                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
                   Experience the future of healthcare with our multi-agent AI system. Get personalized health insights, 
                   symptom analysis, and 24/7 medical guidance powered by cutting-edge technology.
                 </p>
@@ -140,55 +128,38 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
                   Watch Demo
                 </Button>
               </div>
-              
-              <div className="flex items-center gap-8 pt-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="w-8 h-8 bg-gradient-to-br from-blue-400 to-green-400 rounded-full border-2 border-white"></div>
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600">50,000+ users trust us</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  <span className="text-sm text-gray-600 ml-1">4.9/5 rating</span>
-                </div>
-              </div>
             </div>
             
             <div className="relative">
-              <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+              <div className="relative z-10 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                       <Brain className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">AI Health Analysis</h3>
-                      <p className="text-sm text-gray-600">Real-time insights</p>
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">AI Health Analysis</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Real-time insights</p>
                     </div>
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <span className="text-sm font-medium text-green-800">Heart Rate</span>
-                      <span className="text-sm text-green-600">72 bpm ↗️</span>
+                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <span className="text-sm font-medium text-green-800 dark:text-green-300">Heart Rate</span>
+                      <span className="text-sm text-green-600 dark:text-green-400">72 bpm ↗️</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium text-blue-800">Sleep Quality</span>
-                      <span className="text-sm text-blue-600">85% ↗️</span>
+                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Sleep Quality</span>
+                      <span className="text-sm text-blue-600 dark:text-blue-400">85% ↗️</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                      <span className="text-sm font-medium text-purple-800">Stress Level</span>
-                      <span className="text-sm text-purple-600">Low ↘️</span>
+                    <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <span className="text-sm font-medium text-purple-800 dark:text-purple-300">Stress Level</span>
+                      <span className="text-sm text-purple-600 dark:text-purple-400">Low ↘️</span>
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-100">
-                    <p className="text-sm text-gray-700">
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-gray-800 dark:to-gray-800 rounded-lg border border-blue-100 dark:border-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
                       <strong>AI Insight:</strong> Your sleep pattern has improved by 15% this week. 
                       Consider maintaining your current bedtime routine.
                     </p>
@@ -204,28 +175,16 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-gray-900 mb-2">{stat.number}</div>
-                <div className="text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* Features Section */}
-      <section id="features" className="py-20">
+      <section id="features" className="py-20 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               Revolutionizing Healthcare with AI
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Our advanced AI system combines multiple specialized agents to provide comprehensive 
               health management tailored to your unique needs.
             </p>
@@ -233,12 +192,12 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
           
           <div className="grid md:grid-cols-2 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="group p-8 bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+              <div key={index} className="group p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
                 <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -246,11 +205,11 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
       </section>
 
       {/* How it Works Section */}
-      <section id="how-it-works" className="py-20 bg-gradient-to-br from-blue-50 to-green-50">
+      <section id="how-it-works" className="py-20 bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How HealthAI Works</h2>
-            <p className="text-xl text-gray-600">Simple steps to better health management</p>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">How HealthAI Works</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300">Simple steps to better health management</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -276,38 +235,84 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
             ].map((item, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-8">
-                  <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <div className="text-blue-600">{item.icon}</div>
+                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <div className="text-blue-600 dark:text-blue-400">{item.icon}</div>
                   </div>
                   <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{item.title}</h3>
-                <p className="text-gray-600">{item.description}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">{item.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300">{item.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* AI Technology Showcase */}
+<section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-800 dark:to-gray-700">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="text-center mb-16">
+      <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+        Powered by Cutting-Edge AI Technology
+      </h2>
+      <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+        Our multi-agent system combines Gemini, LangGraph, and CrewAI for intelligent health analysis
+      </p>
+    </div>
+    
+    <div className="grid md:grid-cols-3 gap-8">
+      {[
+        {
+          icon: <Brain className="w-8 h-8" />,
+          title: 'Multi-Agent Architecture',
+          description: 'Specialized AI agents work together - from symptom analysis to nutrition planning',
+          tech: 'LangGraph + CrewAI'
+        },
+        {
+          icon: <Zap className="w-8 h-8" />,
+          title: 'Advanced Language Model',
+          description: 'Powered by Google Gemini for natural, contextual health conversations',
+          tech: 'Gemini Pro'
+        },
+        {
+          icon: <Shield className="w-8 h-8" />,
+          title: 'Real-time Processing',
+          description: 'Instant health insights and recommendations with secure data handling',
+          tech: 'FastAPI + React'
+        }
+      ].map((item, index) => (
+        <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+          <div className="text-blue-600 dark:text-blue-400 mb-4">{item.icon}</div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{item.title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-3">{item.description}</p>
+          <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-full">
+            {item.tech}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20">
+      <section id="testimonials" className="py-20 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Users Say</h2>
-            <p className="text-xl text-gray-600">Trusted by healthcare professionals and patients worldwide</p>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">What Our Users Say</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300">Trusted by healthcare professionals and patients worldwide</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+              <div key={index} className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-gray-700 mb-6 leading-relaxed">"{testimonial.content}"</p>
+                <p className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">"{testimonial.content}"</p>
                 <div className="flex items-center gap-4">
                   <img 
                     src={testimonial.avatar} 
@@ -315,8 +320,8 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
-                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600">{testimonial.role}</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{testimonial.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</div>
                   </div>
                 </div>
               </div>
@@ -325,26 +330,9 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-green-500">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Health Journey?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of users who are already experiencing the future of healthcare with HealthAI.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-              Schedule Demo
-            </Button>
-          </div>
-          <p className="text-blue-100 text-sm mt-4">No credit card required • 14-day free trial</p>
-        </div>
-      </section>
+      
+
+
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
