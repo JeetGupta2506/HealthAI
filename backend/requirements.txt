@@ -6,3 +6,4 @@ crewai
 openai
 langchain-google-genai
 python-dotenv
+requests
