@@ -10,7 +10,52 @@ from langgraph.graph import StateGraph, END
 from dotenv import load_dotenv
 load_dotenv()
 
+import re
+
+def format_response(text: str) -> str:
+    """
+    Format AI response into clean Markdown with:
+    - Proper headings
+    - Consistent bullet points
+    - Bolded keywords
+    - Separated disclaimers
+    """
+    import re
+
+    if not text:
+        return ""
+
+    # Ensure bullets use '-' instead of '*'
+    text = re.sub(r"^\s*\*", "-", text, flags=re.MULTILINE)
+
+    # Fix bullets like "- **Thing:**" → keep them consistent
+    text = re.sub(r"-\s*\*\*(.+?):\*\*", r"- **\1**:", text)
+
+    # Add line breaks after headings (## or ###)
+    text = re.sub(r"(#+\s[^\n]+)", r"\1\n", text)
+
+    # Add spacing after sentences
+    text = re.sub(r'([.!?])\s+(?=[A-Z])', r'\1\n\n', text)
+
+    # Convert disclaimers into blockquotes
+    text = re.sub(
+        r"(This information is for .*? advice\.)",
+        r"> ⚠️ \1",
+        text,
+        flags=re.IGNORECASE
+    )
+    text = re.sub(
+        r"(\*\*Please consult.*?\.)",
+        r"> ⚠️ \1",
+        text,
+        flags=re.IGNORECASE
+    )
+
+    return text.strip()
+
+
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,11 +74,39 @@ llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
 # Prompt templates for each agent type
 PROMPT_TEMPLATES = {
-    "general": "You are a helpful general health assistant. Answer the following user question as helpfully as possible.\nUser: {message}",
-    "symptom": "You are a symptom checker AI. Help the user understand their symptoms and suggest next steps.\nUser: {message}",
-    "nutrition": "You are a nutrition expert AI. Give evidence-based nutrition and diet advice.\nUser: {message}",
-    "mental-health": "You are a mental health coach AI. Support the user with mental health tips and resources.\nUser: {message}"
-}
+    "general": (
+        "You are a helpful general health assistant. "
+        "Always format your response in **Markdown** with:\n"
+        "- Clear headings (## Heading)\n"
+        "- Bullet points (- item)\n"
+        "- Bold keywords (**word**)\n\n"
+        "Answer the following user question:\nUser: {message}"
+    ),
+    "symptom": (
+        "You are a symptom checker AI. "
+        "Always format your response in **Markdown** with:\n"
+        "- Clear sections (## Symptoms, ## Possible Causes, ## Next Steps)\n"
+        "- Bullet points (- item)\n"
+        "- Bold important terms (**term**)\n\n"
+        "User: {message}"
+    ),
+    "nutrition": (
+        "You are a nutrition expert AI. "
+        "Always format your response in **Markdown** with:\n"
+        "- Headings for structure (## Diet Tips, ## Foods to Include, ## Foods to Avoid)\n"
+        "- Bullet points for lists\n"
+        "- Bold important nutrients and food names\n\n"
+        "User: {message}"
+    ),
+    "mental-health": (
+        "You are a mental health coach AI. "
+        "Always format your response in **Markdown** with:\n"
+        "- Headings for clarity (## Coping Strategies, ## Resources, ## Self-Care)\n"
+        "- Bullet points for advice\n"
+        "- Bold key ideas for emphasis\n\n"
+        "User: {message}"
+    ),
+} 
 
 def get_prompt(agent_type: str, message: str) -> str:
     print("DEBUG get_prompt called with agent_type:", agent_type, "message:", message)
@@ -102,9 +175,11 @@ async def chat_endpoint(request: ChatRequest):
         if not result or not isinstance(result, dict):
             print("DEBUG /chat returning: Sorry, I couldn't generate a response (workflow returned nothing).")
             return {"response": "Sorry, I couldn't generate a response (workflow returned nothing)."}
-        response = result.get("response", "Sorry, I couldn't generate a response.")
-        print("DEBUG /chat returning:", response)
-        return {"response": response}
+        raw_response = result.get("response", "Sorry, I couldn't generate a response.")
+        formatted_response = format_response(raw_response)
+        print("DEBUG /chat formatted response:", formatted_response)
+        return {"response": formatted_response}
+
     except Exception as e:
         print("ERROR in /chat:", e)
         return {"response": f"Internal server error: {str(e)}"}
