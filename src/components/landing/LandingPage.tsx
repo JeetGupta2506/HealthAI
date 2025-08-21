@@ -9,6 +9,7 @@ import {
   Activity,
   MessageSquare
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { SimpleThemeToggle } from '../ui/ThemeToggle';
 
@@ -65,11 +66,9 @@ const testimonials = [
 
 
 
-interface LandingPageProps {
-  onStartNow?: () => void;
-}
-
-export function LandingPage({ onStartNow }: LandingPageProps) {
+export function LandingPage() {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
       {/* Navigation */}
@@ -90,8 +89,19 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
             </div>
             
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm">Sign In</Button>
-              <Button size="sm">Get Started</Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/signin')}
+              >
+                Sign In
+              </Button>
+              <Button 
+                size="sm"
+                onClick={() => navigate('/signup')}
+              >
+                Get Started
+              </Button>
               <SimpleThemeToggle />
             </div>
           </div>
@@ -119,11 +129,16 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="group" onClick={onStartNow}>
+                <Button size="lg" className="group" onClick={() => navigate('/dashboard')}>
                   Start Your Health Journey
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button variant="outline" size="lg" className="group">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="group"
+                  onClick={() => navigate('/signup')}
+                >
                   <Play className="w-5 h-5 mr-2" />
                   Watch Demo
                 </Button>
