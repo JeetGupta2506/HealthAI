@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { HealthProvider } from './contexts/HealthContext';
 import { LandingPage } from './components/landing/LandingPage';
+import { SignUpPage } from './components/auth/SignUpPage';
+import { SignInPage } from './components/auth/SignInPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { HealthMetrics } from './components/dashboard/HealthMetrics';
@@ -10,9 +13,8 @@ import { MedicationReminders } from './components/dashboard/MedicationReminders'
 import { HealthInsights } from './components/dashboard/HealthInsights';
 import { SymptomChecker } from './components/symptoms/SymptomChecker';
 
-function App() {
+function Dashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [showLanding, setShowLanding] = useState(true);
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,17 +36,6 @@ function App() {
     };
     fetchHealth();
   }, []);
-
-  // Show landing page by default
-  if (showLanding) {
-    return (
-      <ThemeProvider>
-        <HealthProvider>
-          <LandingPage onStartNow={() => setShowLanding(false)} />
-        </HealthProvider>
-      </ThemeProvider>
-    );
-  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -105,30 +96,43 @@ function App() {
   };
 
   return (
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+          <div className="mb-4">
+            {loading ? (
+              <span className="text-gray-500 dark:text-gray-400">Checking backend health...</span>
+            ) : error ? (
+              <span className="text-red-500 dark:text-red-400">Backend error: {error}</span>
+            ) : (
+              <span className="text-green-600 dark:text-green-400">Backend health: {healthStatus}</span>
+            )}
+          </div>
+          {renderContent()}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
     <ThemeProvider>
       <HealthProvider>
-        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <Sidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onLogoClick={() => setShowLanding(true)}
-        />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
-            <div className="mb-4">
-              {loading ? (
-                <span className="text-gray-500 dark:text-gray-400">Checking backend health...</span>
-              ) : error ? (
-                <span className="text-red-500 dark:text-red-400">Backend error: {error}</span>
-              ) : (
-                <span className="text-green-600 dark:text-green-400">Backend health: {healthStatus}</span>
-              )}
-            </div>
-            {renderContent()}
-          </main>
-        </div>
-      </div>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
       </HealthProvider>
     </ThemeProvider>
   );

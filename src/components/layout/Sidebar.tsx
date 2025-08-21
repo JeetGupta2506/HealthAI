@@ -1,4 +1,5 @@
  
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   MessageSquare, 
@@ -13,7 +14,6 @@ import {
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  onLogoClick?: () => void;
 }
 
 const menuItems = [
@@ -25,13 +25,15 @@ const menuItems = [
   { id: 'reports', label: 'Reports', icon: FileText }
 ];
 
-export function Sidebar({ activeTab, onTabChange, onLogoClick }: SidebarProps) {
+export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+  const navigate = useNavigate();
+  
   return (
     <div className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300">
       {/* Logo */}
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <button 
-          onClick={onLogoClick} 
+          onClick={() => navigate('/')} 
           className="w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition-all duration-300"
         >
           <div className="flex items-center gap-3">
@@ -82,7 +84,10 @@ export function Sidebar({ activeTab, onTabChange, onLogoClick }: SidebarProps) {
             <Settings className="w-5 h-5" />
             <span className="font-medium">Settings</span>
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300">
+          <button 
+            onClick={() => navigate('/')}
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300"
+          >
             <LogOut className="w-5 h-5" />
             <span className="font-medium">Sign Out</span>
           </button>

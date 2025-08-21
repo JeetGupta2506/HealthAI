@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 import os
+import json
+from datetime import datetime
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
@@ -11,6 +13,43 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import re
+
+# Medication storage
+MEDICATIONS_FILE = "medications.json"
+
+def load_medications():
+    """Load medications from JSON file"""
+    try:
+        if os.path.exists(MEDICATIONS_FILE):
+            with open(MEDICATIONS_FILE, 'r') as f:
+                data = json.load(f)
+                # Convert string dates back to datetime objects
+                for med in data:
+                    if 'startDate' in med and isinstance(med['startDate'], str):
+                        med['startDate'] = datetime.fromisoformat(med['startDate'])
+                return data
+        return []
+    except Exception as e:
+        print(f"Error loading medications: {e}")
+        return []
+
+def save_medications(medications):
+    """Save medications to JSON file"""
+    try:
+        # Convert datetime objects to strings for JSON serialization
+        data_to_save = []
+        for med in medications:
+            med_copy = med.copy()
+            if 'startDate' in med_copy and isinstance(med_copy['startDate'], datetime):
+                med_copy['startDate'] = med_copy['startDate'].isoformat()
+            data_to_save.append(med_copy)
+        
+        with open(MEDICATIONS_FILE, 'w') as f:
+            json.dump(data_to_save, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error saving medications: {e}")
+        return False
 
 def format_response(text: str) -> str:
     """
@@ -37,19 +76,7 @@ def format_response(text: str) -> str:
     # Add spacing after sentences
     text = re.sub(r'([.!?])\s+(?=[A-Z])', r'\1\n\n', text)
 
-    # Convert disclaimers into blockquotes
-    text = re.sub(
-        r"(This information is for .*? advice\.)",
-        r"> ⚠️ \1",
-        text,
-        flags=re.IGNORECASE
-    )
-    text = re.sub(
-        r"(\*\*Please consult.*?\.)",
-        r"> ⚠️ \1",
-        text,
-        flags=re.IGNORECASE
-    )
+    
 
     return text.strip()
 
@@ -158,6 +185,25 @@ class SymptomAssessmentResponse(BaseModel):
     conditions: list
     recommendations: list
 
+class Medication(BaseModel):
+    id: str
+    name: str
+    dosage: str
+    frequency: str
+    timeToTake: List[str]
+    prescribedBy: str
+    startDate: datetime
+    instructions: Optional[str] = None
+
+class MedicationCreate(BaseModel):
+    name: str
+    dosage: str
+    frequency: str
+    timeToTake: List[str]
+    prescribedBy: str
+    startDate: datetime
+    instructions: Optional[str] = None
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Health Chatbot FastAPI backend!"}
@@ -215,3 +261,48 @@ async def assess_symptoms(request: SymptomAssessmentRequest):
             "conditions": [],
             "recommendations": [f"Could not parse AI response: {str(e)}", "Raw response: " + str(raw)]
         }
+
+@app.get("/api/medications")
+async def get_medications():
+    """Get all medications"""
+    medications = load_medications()
+    return {"medications": medications}
+
+@app.post("/api/medications")
+async def create_medication(medication: MedicationCreate):
+    """Create a new medication"""
+    medications = load_medications()
+    
+    # Generate unique ID
+    new_id = str(len(medications) + 1)
+    while any(med['id'] == new_id for med in medications):
+        new_id = str(int(new_id) + 1)
+    
+    new_medication = {
+        "id": new_id,
+        **medication.dict()
+    }
+    
+    medications.append(new_medication)
+    
+    if save_medications(medications):
+        return {"success": True, "medication": new_medication}
+    else:
+        return {"success": False, "error": "Failed to save medication"}
+
+@app.delete("/api/medications/{medication_id}")
+async def delete_medication(medication_id: str):
+    """Delete a medication"""
+    medications = load_medications()
+    
+    # Find and remove the medication
+    original_count = len(medications)
+    medications = [med for med in medications if med['id'] != medication_id]
+    
+    if len(medications) < original_count:
+        if save_medications(medications):
+            return {"success": True, "message": "Medication deleted successfully"}
+        else:
+            return {"success": False, "error": "Failed to save medications after deletion"}
+    else:
+        return {"success": False, "error": "Medication not found"}
