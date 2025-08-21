@@ -23,7 +23,7 @@ const features = [
     icon: <MessageSquare className="w-8 h-8" />,
     title: 'Multi-Agent AI Assistant',
     description: 'Chat with specialized AI agents for different health concerns - from symptoms to nutrition.',
-    color: 'from-blue-500 to-cyan-500'
+    color: 'from-gray-500 to-gray-600'
   },
   {
     icon: <Activity className="w-8 h-8" />,
@@ -99,7 +99,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200">
+      <section className="pt-24 pb-16 bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -110,7 +110,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
                 </div>
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
                   Your AI-Powered
-                  <span className="bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent"> Health Companion</span>
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent"> Health Companion</span>
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
                   Experience the future of healthcare with our multi-agent AI system. Get personalized health insights, 
@@ -134,11 +134,11 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
               <div className="relative z-10 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center">
                       <Brain className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">AI Health Analysis</h3>
+                      <h3 className="font-semibold text-gray-800 dark:text-white">AI Health Analysis</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Real-time insights</p>
                     </div>
                   </div>
@@ -148,9 +148,9 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
                       <span className="text-sm font-medium text-green-800 dark:text-green-300">Heart Rate</span>
                       <span className="text-sm text-green-600 dark:text-green-400">72 bpm ↗️</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Sleep Quality</span>
-                      <span className="text-sm text-blue-600 dark:text-blue-400">85% ↗️</span>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-300">Sleep Quality</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">85% ↗️</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                       <span className="text-sm font-medium text-purple-800 dark:text-purple-300">Stress Level</span>
@@ -158,7 +158,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-gray-800 dark:to-gray-800 rounded-lg border border-blue-100 dark:border-gray-700">
+                  <div className="p-4 bg-gradient-to-r from-gray-50 to-green-50 dark:from-gray-800 dark:to-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       <strong>AI Insight:</strong> Your sleep pattern has improved by 15% this week. 
                       Consider maintaining your current bedtime routine.
@@ -168,7 +168,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
               </div>
               
               {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-green-400 to-blue-500 rounded-full opacity-20 animate-pulse"></div>
+              <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-green-400 to-gray-500 rounded-full opacity-20 animate-pulse"></div>
               <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full opacity-20 animate-pulse delay-1000"></div>
             </div>
           </div>
@@ -181,7 +181,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
       <section id="features" className="py-20 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Revolutionizing Healthcare with AI
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
@@ -196,7 +196,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
                 <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">{feature.title}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{feature.title}</h3>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
               </div>
             ))}
@@ -205,10 +205,10 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
       </section>
 
       {/* How it Works Section */}
-      <section id="how-it-works" className="py-20 bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
+      <section id="how-it-works" className="py-20 bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">How HealthAI Works</h2>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">How HealthAI Works</h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">Simple steps to better health management</p>
           </div>
           
@@ -236,13 +236,13 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
               <div key={index} className="text-center group">
                 <div className="relative mb-8">
                   <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <div className="text-blue-600 dark:text-blue-400">{item.icon}</div>
+                    <div className="text-gray-600 dark:text-gray-400">{item.icon}</div>
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                     {item.step}
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">{item.title}</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{item.title}</h3>
                 <p className="text-gray-600 dark:text-gray-300">{item.description}</p>
               </div>
             ))}
@@ -251,10 +251,10 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
       </section>
 
       {/* AI Technology Showcase */}
-<section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-800 dark:to-gray-700">
+<section className="py-20 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-700">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div className="text-center mb-16">
-      <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+      <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
         Powered by Cutting-Edge AI Technology
       </h2>
       <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
@@ -284,10 +284,10 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
         }
       ].map((item, index) => (
         <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-          <div className="text-blue-600 dark:text-blue-400 mb-4">{item.icon}</div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{item.title}</h3>
+          <div className="text-gray-600 dark:text-gray-400 mb-4">{item.icon}</div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{item.title}</h3>
           <p className="text-gray-600 dark:text-gray-300 mb-3">{item.description}</p>
-          <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-full">
+          <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 text-sm rounded-full">
             {item.tech}
           </span>
         </div>
@@ -297,10 +297,10 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
 </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-white dark:bg-gray-900">
+      <section id="testimonials" className="py-20 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">What Our Users Say</h2>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">What Our Users Say</h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">Trusted by healthcare professionals and patients worldwide</p>
           </div>
           
@@ -320,7 +320,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">{testimonial.name}</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</div>
                   </div>
                 </div>
@@ -335,24 +335,24 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
 
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
+      <footer className="bg-black text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-green-500 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-500 rounded-lg flex items-center justify-center">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl font-bold">HealthAI</span>
               </div>
-              <p className="text-gray-400">
+              <p className="text-gray-300">
                 Revolutionizing healthcare with AI-powered insights and personalized health management.
               </p>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400">
+                              <ul className="space-y-2 text-gray-300">
                 <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
@@ -362,7 +362,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
             
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
+                              <ul className="space-y-2 text-gray-300">
                 <li><a href="#" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
@@ -372,7 +372,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
             
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
+                              <ul className="space-y-2 text-gray-300">
                 <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
@@ -381,7 +381,7 @@ export function LandingPage({ onStartNow }: LandingPageProps) {
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                      <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-300">
             <p>&copy; 2025 HealthAI. All rights reserved.</p>
           </div>
         </div>

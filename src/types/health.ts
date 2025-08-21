@@ -3,7 +3,7 @@ export interface HealthMetric {
   name: string;
   value: number;
   unit: string;
-  target?: number;
+  target?: number | null;
   trend: 'up' | 'down' | 'stable';
   lastUpdated: Date;
 }

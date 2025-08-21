@@ -85,11 +85,11 @@ export function MedicationReminders() {
             const nextDose = getNextDose(medication.timeToTake);
             
             return (
-              <div key={medication.id} className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+              <div key={medication.id} className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                   isTaken 
                     ? 'bg-green-500 text-white' 
-                    : 'bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                    : 'bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-400 text-gray-600 dark:text-gray-400'
                 }`}>
                   {isTaken ? <Check className="w-6 h-6" /> : <Pill className="w-6 h-6" />}
                 </div>

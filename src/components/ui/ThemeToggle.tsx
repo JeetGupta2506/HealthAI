@@ -24,10 +24,10 @@ export function ThemeToggle() {
               ${theme === value 
                 ? `bg-gradient-to-br shadow-lg transform scale-105 ring-2 ring-offset-2
                    ${value === 'light' 
-                     ? 'from-blue-400 to-white-600 !text-white ring-amber-800/20 ring-offset-white dark:ring-offset-gray-900' 
+                     ? 'from-amber-400 to-orange-600 !text-white ring-amber-800/20 ring-offset-white dark:ring-offset-slate-grey-900' 
                      : value === 'dark'
-                     ? 'from-slate-600 to-gray-700 !text-white ring-slate-500/20 ring-offset-white dark:ring-offset-gray-900'
-                     : 'from-emerald-600 to-teal-600 !text-white ring-emerald-500/20 ring-offset-white dark:ring-offset-gray-900'
+                     ? 'from-blue-600 to-blue-700 !text-white ring-blue-500/20 ring-offset-white dark:ring-offset-gray-900'
+                     : 'from-emerald-600 to-teal-600 !text-white ring-emerald-500/20 ring-offset-white dark:ring-offset-slate-grey-900'
                    }` 
                 : `text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 
                    hover:bg-white/60 dark:hover:bg-gray-700/60 hover:shadow-md hover:scale-105
@@ -56,7 +56,7 @@ export function ThemeToggle() {
             bg-gradient-to-br opacity-20 blur-sm
             ${actualTheme === 'light' 
               ? 'from-amber-600 to-orange-600' 
-              : 'from-slate-600 to-gray-700'
+              : 'from-blue-600 to-blue-700'
             }
           `}
           style={{
@@ -83,7 +83,7 @@ export function SimpleThemeToggle() {
         relative p-3 rounded-xl transition-all duration-300 group overflow-hidden
         bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900
         hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-800
-        text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white
+        text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100
         shadow-lg hover:shadow-xl dark:shadow-gray-900/30
         border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/50 dark:hover:border-gray-600/50
         focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-2
@@ -98,7 +98,7 @@ export function SimpleThemeToggle() {
         absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
         bg-gradient-to-br
         ${actualTheme === 'light' 
-          ? 'from-slate-600/10 to-gray-700/10' 
+          ? 'from-blue-600/10 to-blue-700/10' 
           : 'from-amber-600/10 to-orange-600/10'
         }
       `} />
@@ -117,7 +117,7 @@ export function SimpleThemeToggle() {
         absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none
         shadow-lg
         ${actualTheme === 'light' 
-          ? 'shadow-slate-600/20' 
+          ? 'shadow-blue-600/20' 
           : 'shadow-amber-600/20'
         }
       `} />
@@ -136,7 +136,7 @@ export function FloatingThemeToggle() {
         fixed bottom-6 right-6 p-4 rounded-full transition-all duration-300 group z-50
         bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl
         hover:bg-white/90 dark:hover:bg-gray-900/90
-        text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white
+        text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100
         shadow-2xl hover:shadow-3xl dark:shadow-gray-900/50
         border border-white/20 dark:border-gray-700/20
         focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-2
@@ -151,7 +151,7 @@ export function FloatingThemeToggle() {
         absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500
         bg-gradient-to-br animate-pulse
         ${actualTheme === 'light' 
-          ? 'from-slate-600/20 to-gray-700/20' 
+          ? 'from-blue-600/20 to-blue-700/20' 
           : 'from-amber-600/20 to-orange-600/20'
         }
       `} />
@@ -170,14 +170,14 @@ export function FloatingThemeToggle() {
         <div className={`
           absolute inset-2 rounded-full border-2 animate-spin
           ${actualTheme === 'light' 
-            ? 'border-slate-500/30 border-t-slate-600/60' 
+            ? 'border-blue-500/30 border-t-blue-600/60' 
             : 'border-amber-600/30 border-t-amber-700/60'
           }
         `} style={{ animationDuration: '3s' }} />
         <div className={`
           absolute inset-1 rounded-full border animate-spin
           ${actualTheme === 'light' 
-            ? 'border-gray-500/20 border-r-gray-600/40' 
+            ? 'border-blue-500/20 border-r-blue-600/40' 
             : 'border-orange-600/20 border-r-orange-700/40'
           }
         `} style={{ animationDuration: '4s', animationDirection: 'reverse' }} />

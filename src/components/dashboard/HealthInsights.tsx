@@ -83,7 +83,7 @@ export function HealthInsights() {
           {mockInsights.map((insight) => (
             <div key={insight.id} className={`p-4 rounded-lg border-2 bg-gradient-to-r ${getPriorityColor(insight.priority)}`}>
               <div className="flex items-start gap-3">
-                <div className="text-blue-600 dark:text-blue-400">
+                <div className="text-gray-600 dark:text-gray-400">
                   {getCategoryIcon(insight.category)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -95,7 +95,7 @@ export function HealthInsights() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{insight.category}</span>
                     {insight.actionable && (
-                      <button className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
+                      <button className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium">
                         Take Action →
                       </button>
                     )}

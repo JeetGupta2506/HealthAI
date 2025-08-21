@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { HealthProvider } from './contexts/HealthContext';
 import { LandingPage } from './components/landing/LandingPage';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -38,7 +39,9 @@ function App() {
   if (showLanding) {
     return (
       <ThemeProvider>
-        <LandingPage onStartNow={() => setShowLanding(false)} />
+        <HealthProvider>
+          <LandingPage onStartNow={() => setShowLanding(false)} />
+        </HealthProvider>
       </ThemeProvider>
     );
   }
@@ -103,7 +106,8 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <HealthProvider>
+        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
         <Sidebar
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -125,6 +129,7 @@ function App() {
           </main>
         </div>
       </div>
+      </HealthProvider>
     </ThemeProvider>
   );
 }

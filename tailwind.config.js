@@ -38,6 +38,7 @@ export default {
           DEFAULT: 'rgb(var(--color-card) / <alpha-value>)',
           foreground: 'rgb(var(--color-card-foreground) / <alpha-value>)',
         },
+
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

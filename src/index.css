@@ -2,7 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Basic Tailwind dark mode - no custom variables */
+/* Original Theme - CSS Custom Properties */
+:root {
+  /* Light theme colors */
+  --color-background: 255 255 255;
+  --color-foreground: 15 23 42;
+  --color-card: 255 255 255;
+  --color-card-foreground: 15 23 42;
+  --color-popover: 255 255 255;
+  --color-popover-foreground: 15 23 42;
+  --color-primary: 59 130 246;
+  --color-primary-foreground: 255 255 255;
+  --color-secondary: 241 245 249;
+  --color-secondary-foreground: 15 23 42;
+  --color-muted: 248 250 252;
+  --color-muted-foreground: 100 116 139;
+  --color-accent: 241 245 249;
+  --color-accent-foreground: 15 23 42;
+  --color-destructive: 239 68 68;
+  --color-destructive-foreground: 255 255 255;
+  --color-border: 226 232 240;
+  --color-input: 226 232 240;
+  --color-ring: 59 130 246;
+}
+
+.dark {
+  /* Dark theme colors - original */
+  --color-background: 15 23 42;
+  --color-foreground: 248 250 252;
+  --color-card: 30 41 59;
+  --color-card-foreground: 248 250 252;
+  --color-popover: 30 41 59;
+  --color-popover-foreground: 248 250 252;
+  --color-primary: 59 130 246;
+  --color-primary-foreground: 255 255 255;
+  --color-secondary: 51 65 85;
+  --color-secondary-foreground: 248 250 252;
+  --color-muted: 51 65 85;
+  --color-muted-foreground: 148 163 184;
+  --color-accent: 51 65 85;
+  --color-accent-foreground: 248 250 252;
+  --color-destructive: 239 68 68;
+  --color-destructive-foreground: 255 255 255;
+  --color-border: 51 65 85;
+  --color-input: 51 65 85;
+  --color-ring: 59 130 246;
+}
 
 * {
   border-color: rgb(var(--color-border));
@@ -51,4 +96,24 @@ body {
 ::selection {
   background-color: rgb(var(--color-primary) / 0.3);
   color: rgb(var(--color-foreground));
+}
+
+/* Custom utility classes for the dark grey theme */
+.bg-gradient-dark-grey {
+  background: linear-gradient(135deg, rgb(15 23 42) 0%, rgb(30 41 59) 50%, rgb(51 65 85) 100%);
+}
+
+.bg-gradient-card-dark {
+  background: linear-gradient(135deg, rgb(30 41 59) 0%, rgb(51 65 85) 100%);
+}
+
+.bg-gradient-accent-dark {
+  background: linear-gradient(135deg, rgb(51 65 85) 0%, rgb(71 85 105) 100%);
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, rgb(148 163 184) 0%, rgb(203 213 225) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

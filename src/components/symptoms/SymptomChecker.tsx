@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, AlertCircle, CheckCircle, Clock, ArrowRight } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { useHealth } from '../../contexts/HealthContext';
 
 interface Symptom {
   id: string;
@@ -66,8 +67,8 @@ export function SymptomChecker() {
     }
   };
 
-  const getRiskColor = (level: string) => {
-    switch (level) {
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
       case 'low': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-gray-800';
       case 'moderate': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-gray-800';
       case 'high': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-gray-800';
@@ -79,6 +80,8 @@ export function SymptomChecker() {
     symptom.toLowerCase().includes(searchTerm.toLowerCase()) &&
     !selectedSymptoms.find(s => s.name === symptom)
   );
+
+  const { incrementSymptomChecks } = useHealth();
 
   const getAIAssessment = async () => {
     setLoading(true);
@@ -95,6 +98,7 @@ export function SymptomChecker() {
       if (!response.ok) throw new Error('Failed to get assessment');
       const data = await response.json();
       setAssessment(data);
+      incrementSymptomChecks(); // Increment the symptom check count
       setCurrentStep('assessment');
     } catch (err: any) {
       setError(err.message || 'Unknown error');
@@ -108,48 +112,45 @@ export function SymptomChecker() {
       <Card>
         <CardHeader title="Health Assessment Results" subtitle="AI-powered analysis of your symptoms" />
         <CardContent className="space-y-6">
-          {loading && <div className="text-blue-600">Loading assessment...</div>}
+          {loading && <div className="text-gray-600">Loading assessment...</div>}
           {error && <div className="text-red-600">{error}</div>}
           {assessment && (
             <>
               {/* Risk Level */}
-              <div className={`p-4 rounded-lg border-2 ${getRiskColor(assessment.riskLevel)} border-gray-200 dark:border-gray-700`}>
+                              <div className={`p-4 rounded-lg border-2 ${getPriorityColor(assessment.riskLevel)} border-gray-200 dark:border-gray-700`}>
                 <div className="flex items-center gap-3">
                   <AlertCircle className="w-6 h-6 text-current" />
                   <div>
-                    <h3 className="font-semibold capitalize text-gray-800 dark:text-gray-100">Risk Level: {assessment.riskLevel}</h3>
+                    <h3 className="font-semibold capitalize text-gray-800 dark:text-white">Risk Level: {assessment.riskLevel}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Based on your reported symptoms</p>
                   </div>
                 </div>
               </div>
               {/* Possible Conditions */}
               <div>
-                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Possible Conditions</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-3">Possible Conditions</h3>
                 <div className="space-y-3">
                   {assessment.conditions && assessment.conditions.length > 0 ? assessment.conditions.map((condition: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <div>
-                        <p className="font-medium text-gray-800 dark:text-gray-100">{condition.name}</p>
+                        <p className="font-medium text-gray-800 dark:text-white">{condition.name}</p>
                         {condition.probability && <p className="text-sm text-gray-600 dark:text-gray-400">{condition.probability}% match</p>}
                       </div>
-                      {condition.urgent && (
-                        <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                          <AlertCircle className="w-4 h-4" />
-                          <span className="text-sm">Urgent</span>
-                        </div>
-                      )}
+                      <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(condition.risk)}`}>
+                        {condition.risk}
+                      </span>
                     </div>
                   )) : <div className="text-gray-500 dark:text-gray-400">No conditions found.</div>}
                 </div>
               </div>
               {/* Recommendations */}
               <div>
-                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Recommendations</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-white mb-3">Recommendations</h3>
                 <div className="space-y-2">
                   {assessment.recommendations && assessment.recommendations.length > 0 ? assessment.recommendations.map((rec: string, index: number) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-gray-800 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-blue-800 dark:text-gray-100">{rec}</p>
+                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-gray-800 dark:text-white">{rec}</p>
                     </div>
                   )) : <div className="text-gray-500 dark:text-gray-400">No recommendations found.</div>}
                 </div>
@@ -181,18 +182,18 @@ export function SymptomChecker() {
       <CardContent className="space-y-6">
         {/* Step Indicator */}
         <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className={`flex items-center gap-2 ${currentStep === 'symptoms' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}`}>
+          <div className={`flex items-center gap-2 ${currentStep === 'symptoms' ? 'text-gray-600 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep === 'symptoms' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
+              currentStep === 'symptoms' ? 'bg-gray-600 text-white' : 'bg-green-600 text-white'
             }`}>
               {currentStep === 'symptoms' ? '1' : <CheckCircle className="w-5 h-5" />}
             </div>
             <span className="font-medium">Select Symptoms</span>
           </div>
           <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-          <div className={`flex items-center gap-2 ${currentStep === 'details' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}>
+          <div className={`flex items-center gap-2 ${currentStep === 'details' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep === 'details' ? 'bg-blue-600 text-white' : 'border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
+              currentStep === 'details' ? 'bg-gray-600 text-white' : 'border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
             }`}>
               2
             </div>
@@ -221,7 +222,7 @@ export function SymptomChecker() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Type a symptom..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
               
@@ -232,7 +233,7 @@ export function SymptomChecker() {
                     <button
                       key={symptom}
                       onClick={() => addSymptom(symptom)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-800 dark:text-gray-100"
+                      className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-800 dark:text-white"
                     >
                       {symptom}
                     </button>
@@ -249,7 +250,7 @@ export function SymptomChecker() {
                   <button
                     key={symptom}
                     onClick={() => addSymptom(symptom)}
-                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-700 hover:text-blue-700 dark:hover:text-gray-100 rounded-full transition-all duration-200"
+                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-100 rounded-full transition-all duration-200"
                   >
                     {symptom}
                   </button>
@@ -263,8 +264,8 @@ export function SymptomChecker() {
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Selected symptoms:</p>
                 <div className="space-y-2">
                   {selectedSymptoms.map((symptom) => (
-                    <div key={symptom.id} className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-gray-700">
-                      <span className="font-medium flex-1 text-gray-800 dark:text-gray-100">{symptom.name}</span>
+                    <div key={symptom.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <span className="font-medium flex-1 text-gray-800 dark:text-white">{symptom.name}</span>
                       <button
                         onClick={() => removeSymptom(symptom.id)}
                         className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm"
@@ -289,11 +290,11 @@ export function SymptomChecker() {
 
         {currentStep === 'details' && (
           <div className="space-y-4">
-            <h3 className="font-semibold text-gray-800 dark:text-gray-100">Provide more details about your symptoms</h3>
+            <h3 className="font-semibold text-gray-800 dark:text-white">Provide more details about your symptoms</h3>
             
             {selectedSymptoms.map((symptom) => (
               <div key={symptom.id} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h4 className="font-medium text-gray-800 dark:text-gray-100 mb-3">{symptom.name}</h4>
+                <h4 className="font-medium text-gray-800 dark:text-white mb-3">{symptom.name}</h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -303,7 +304,7 @@ export function SymptomChecker() {
                     <select
                       value={symptom.severity}
                       onChange={(e) => updateSymptom(symptom.id, { severity: e.target.value as 'mild' | 'moderate' | 'severe' })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     >
                       <option value="mild">Mild</option>
                       <option value="moderate">Moderate</option>
@@ -318,7 +319,7 @@ export function SymptomChecker() {
                     <select
                       value={symptom.bodyPart}
                       onChange={(e) => updateSymptom(symptom.id, { bodyPart: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     >
                       <option value="general">General</option>
                       <option value="head">Head</option>

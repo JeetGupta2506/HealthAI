@@ -70,7 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       const meta = document.createElement('meta');
       meta.name = 'theme-color';
-      meta.content = actualTheme === 'dark' ? '#1f2937' : '#ffffff';
+              meta.content = actualTheme === 'dark' ? '#1f2937' : '#ffffff';
       document.head.appendChild(meta);
     }
   }, [actualTheme]);
