@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LandingPage } from './components/landing/LandingPage';
 import { Sidebar } from './components/layout/Sidebar';
@@ -82,9 +82,9 @@ function App() {
       case 'reports':
         return (
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Health Reports</h2>
-              <p className="text-gray-600">Detailed health reports and analytics coming soon...</p>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Health Reports</h2>
+              <p className="text-gray-600 dark:text-gray-300">Detailed health reports and analytics coming soon...</p>
             </div>
           </div>
         );
@@ -104,10 +104,14 @@ function App() {
   return (
     <ThemeProvider>
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <Sidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onLogoClick={() => setShowLanding(true)}
+        />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
             <div className="mb-4">
               {loading ? (
                 <span className="text-gray-500 dark:text-gray-400">Checking backend health...</span>

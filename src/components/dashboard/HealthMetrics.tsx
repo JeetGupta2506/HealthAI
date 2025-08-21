@@ -1,4 +1,3 @@
-import React from 'react';
 import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { HealthMetric } from '../../types/health';
@@ -56,7 +55,7 @@ const getTrendIcon = (trend: string) => {
   switch (trend) {
     case 'up': return <TrendingUp className="w-4 h-4 text-green-500" />;
     case 'down': return <TrendingDown className="w-4 h-4 text-red-500" />;
-    default: return <Minus className="w-4 h-4 text-gray-400" />;
+    default: return <Minus className="w-4 h-4 text-gray-400 dark:text-gray-500" />;
   }
 };
 
@@ -67,19 +66,19 @@ export function HealthMetrics() {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {mockMetrics.map((metric) => (
-            <div key={metric.id} className="bg-gradient-to-br from-blue-50 to-green-50 p-4 rounded-lg border border-gray-100">
+            <div key={metric.id} className="bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-blue-600">{getIcon(metric.name)}</div>
+                <div className="text-blue-600 dark:text-blue-400">{getIcon(metric.name)}</div>
                 {getTrendIcon(metric.trend)}
               </div>
               <div className="space-y-1">
-                <p className="text-2xl font-bold text-gray-800">
+                <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                   {metric.value}
-                  <span className="text-sm font-normal text-gray-500 ml-1">{metric.unit}</span>
+                  <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-1">{metric.unit}</span>
                 </p>
-                <p className="text-sm text-gray-600">{metric.name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{metric.name}</p>
                 {metric.target && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Target: {metric.target} {metric.unit}
                   </p>
                 )}

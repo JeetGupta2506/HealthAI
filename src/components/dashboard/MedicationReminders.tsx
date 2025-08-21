@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Pill, Clock, Plus, Check, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -85,27 +85,29 @@ export function MedicationReminders() {
             const nextDose = getNextDose(medication.timeToTake);
             
             return (
-              <div key={medication.id} className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-gray-100">
+              <div key={medication.id} className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  isTaken ? 'bg-green-500 text-white' : 'bg-white border-2 border-blue-200 text-blue-600'
+                  isTaken 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-400 text-blue-600 dark:text-blue-400'
                 }`}>
                   {isTaken ? <Check className="w-6 h-6" /> : <Pill className="w-6 h-6" />}
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-gray-800">{medication.name}</h4>
-                    <span className="text-sm text-gray-500">{medication.dosage}</span>
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100">{medication.name}</h4>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{medication.dosage}</span>
                   </div>
-                  <p className="text-sm text-gray-600">{medication.frequency}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{medication.frequency}</p>
                   <div className="flex items-center gap-1 mt-1">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Next: {nextDose}</span>
+                    <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Next: {nextDose}</span>
                   </div>
                   {medication.instructions && (
                     <div className="flex items-center gap-1 mt-1">
                       <AlertCircle className="w-4 h-4 text-amber-500" />
-                      <span className="text-sm text-amber-600">{medication.instructions}</span>
+                      <span className="text-sm text-amber-600 dark:text-amber-400">{medication.instructions}</span>
                     </div>
                   )}
                 </div>
