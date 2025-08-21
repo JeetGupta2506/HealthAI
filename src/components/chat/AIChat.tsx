@@ -122,14 +122,14 @@ export function AIChat() {
             <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`flex items-start gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  message.sender === 'user' ? 'bg-blue-600 text-white' : getAgentInfo(message.agentType).color + ' text-white'
+                  message.sender === 'user' ? 'bg-gray-600 text-white' : getAgentInfo(message.agentType).color + ' text-white'
                 }`}>
                   {message.sender === 'user' ? <User className="w-4 h-4" /> : getAgentInfo(message.agentType).icon}
                 </div>
                 <div className={`rounded-2xl px-4 py-3 ${
                   message.sender === 'user' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
+                    ? 'bg-gray-600 text-white' 
+                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-white'
                 }`}>
                   <div className="prose prose-sm max-w-none">
                     <ReactMarkdown>
@@ -173,7 +173,7 @@ export function AIChat() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder={`Ask the ${getAgentInfo(selectedAgent).name} agent...`}
-            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             disabled={isTyping}
           />

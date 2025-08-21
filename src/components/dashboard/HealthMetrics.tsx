@@ -1,50 +1,14 @@
-import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus, MinusCircle, Edit2, Plus, PlusCircle, Check, Target } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
-import { HealthMetric } from '../../types/health';
-
-const mockMetrics: HealthMetric[] = [
-  {
-    id: '1',
-    name: 'Heart Rate',
-    value: 72,
-    unit: 'bpm',
-    target: 70,
-    trend: 'stable',
-    lastUpdated: new Date()
-  },
-  {
-    id: '2',
-    name: 'Blood Pressure',
-    value: 120,
-    unit: 'mmHg',
-    target: 120,
-    trend: 'down',
-    lastUpdated: new Date()
-  },
-  {
-    id: '3',
-    name: 'Sleep Quality',
-    value: 85,
-    unit: '%',
-    target: 80,
-    trend: 'up',
-    lastUpdated: new Date()
-  },
-  {
-    id: '4',
-    name: 'Hydration',
-    value: 6,
-    unit: 'glasses',
-    target: 8,
-    trend: 'up',
-    lastUpdated: new Date()
-  }
-];
+import { useState, useEffect } from 'react';
+import { Button } from '../ui/Button';
+import { useHealth } from '../../contexts/HealthContext';
+import confetti from 'canvas-confetti';
 
 const getIcon = (name: string) => {
   switch (name) {
-    case 'Heart Rate': return <Heart className="w-5 h-5" />;
-    case 'Blood Pressure': return <Activity className="w-5 h-5" />;
+    case 'Wellness Score': return <Activity className="w-5 h-5" />;
+    case 'Symptom Checks': return <Heart className="w-5 h-5" />;
     case 'Sleep Quality': return <Moon className="w-5 h-5" />;
     case 'Hydration': return <Droplets className="w-5 h-5" />;
     default: return <Activity className="w-5 h-5" />;
@@ -60,28 +24,189 @@ const getTrendIcon = (trend: string) => {
 };
 
 export function HealthMetrics() {
+  const { metrics, updateMetric, updateTarget, incrementHydration, decrementHydration } = useHealth();
+  const [editingMetric, setEditingMetric] = useState<string | null>(null);
+  const [editingTarget, setEditingTarget] = useState<string | null>(null);
+  const [tempValue, setTempValue] = useState<number>(0);
+  const [tempTarget, setTempTarget] = useState<number>(0);
+  const [showingCelebration, setShowingCelebration] = useState<string[]>([]);
+  const [achievedTargets, setAchievedTargets] = useState<Record<string, boolean>>({});
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize achievement status on mount
+  useEffect(() => {
+    const initialAchievements = metrics.reduce((acc, metric) => {
+      acc[metric.id] = metric.target != null && metric.value >= metric.target;
+      return acc;
+    }, {} as Record<string, boolean>);
+    
+    setAchievedTargets(initialAchievements);
+    setIsInitialized(true);
+  }, []); // Run only on mount
+
+  // Track previous values to detect when targets are newly reached
+  useEffect(() => {
+    if (!isInitialized) return; // Skip if not initialized
+
+    metrics.forEach(metric => {
+      const wasAchieved = achievedTargets[metric.id];
+      const isAchieved = metric.target != null && metric.value >= metric.target;
+
+      // Only celebrate if target is newly achieved (wasn't achieved before)
+      if (isAchieved && !wasAchieved && !showingCelebration.includes(metric.id)) {
+        setShowingCelebration(prev => [...prev, metric.id]);
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+        setTimeout(() => {
+          setShowingCelebration(prev => prev.filter(id => id !== metric.id));
+        }, 3000);
+      }
+
+      // Update achievement status
+      setAchievedTargets(prev => ({
+        ...prev,
+        [metric.id]: isAchieved
+      }));
+
+    });
+  }, [metrics, isInitialized, achievedTargets]);
+
+  const handleEdit = (metricId: string, value: number, isTarget: boolean = false) => {
+    if (isTarget) {
+      setEditingTarget(metricId);
+      setTempTarget(value);
+    } else {
+      setEditingMetric(metricId);
+      setTempValue(value);
+    }
+  };
+
+  const handleSave = (metricId: string, isTarget: boolean = false) => {
+    if (isTarget) {
+      updateTarget(metricId, tempTarget);
+      setEditingTarget(null);
+    } else {
+      updateMetric(metricId, tempValue);
+      setEditingMetric(null);
+    }
+  };
+
   return (
     <Card>
       <CardHeader title="Health Metrics" subtitle="Real-time health data overview" />
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {mockMetrics.map((metric) => (
-            <div key={metric.id} className="bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+          {metrics.map((metric) => (
+            <div key={metric.id} className="bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-blue-600 dark:text-blue-400">{getIcon(metric.name)}</div>
+                <div className="text-gray-600 dark:text-gray-400">{getIcon(metric.name)}</div>
                 {getTrendIcon(metric.trend)}
               </div>
               <div className="space-y-1">
-                <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                  {metric.value}
-                  <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-1">{metric.unit}</span>
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">{metric.name}</p>
-                {metric.target && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Target: {metric.target} {metric.unit}
-                  </p>
+                {editingMetric === metric.id ? (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      value={tempValue}
+                      onChange={(e) => setTempValue(Number(e.target.value))}
+                      className="w-20 px-2 py-1 text-lg border rounded dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <Button
+                      onClick={() => handleSave(metric.id)}
+                      size="sm"
+                      variant="ghost"
+                      className="p-1"
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                      {metric.value}
+                      <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-1">{metric.unit}</span>
+                    </p>
+                    {(metric.name === 'Sleep Quality' || metric.name === 'Hydration') && (
+                      <div className="flex gap-1">
+                        {metric.name === 'Hydration' ? (
+                          <>
+                            <Button
+                              onClick={decrementHydration}
+                              size="sm"
+                              variant="ghost"
+                              className="p-1"
+                            >
+                              <MinusCircle className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              onClick={incrementHydration}
+                              size="sm"
+                              variant="ghost"
+                              className="p-1"
+                            >
+                              <PlusCircle className="w-4 h-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            onClick={() => handleEdit(metric.id, metric.value)}
+                            size="sm"
+                            variant="ghost"
+                            className="p-1"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
+                <p className="text-sm text-gray-600 dark:text-gray-300">{metric.name}</p>
+                {metric.target !== null && (
+                  <div className="flex items-center justify-between">
+                    {editingTarget === metric.id ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          value={tempTarget}
+                          onChange={(e) => setTempTarget(Number(e.target.value))}
+                          className="w-16 px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                        />
+                        <Button
+                          onClick={() => handleSave(metric.id, true)}
+                          size="sm"
+                          variant="ghost"
+                          className="p-1"
+                        >
+                          <Check className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                          Target: {metric.target} {metric.unit}
+                          {showingCelebration.includes(metric.id) && (
+                            <span className="inline-block animate-bounce">🎉</span>
+                          )}
+                        </p>
+                        <Button
+                          onClick={() => handleEdit(metric.id, metric.target || 0, true)}
+                          size="sm"
+                          variant="ghost"
+                          className="p-1"
+                        >
+                          <Target className="w-3 h-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Last updated: {new Date(metric.lastUpdated).toLocaleTimeString()}
+                </p>
               </div>
             </div>
           ))}

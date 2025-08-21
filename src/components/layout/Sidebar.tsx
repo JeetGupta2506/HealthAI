@@ -31,7 +31,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   return (
     <div className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <button 
           onClick={() => navigate('/')} 
           className="w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition-all duration-300"
@@ -65,8 +65,8 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                 onClick={() => onTabChange(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 ${
                   isActive 
-                    ? 'bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 text-blue-700 dark:text-blue-300 border-r-2 border-blue-700 dark:border-blue-400' 
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-100'
+                    ? 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-white border-r-2 border-gray-700 dark:border-gray-400' 
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-white'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -78,7 +78,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <div className="space-y-2">
           <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all duration-300">
             <Settings className="w-5 h-5" />
