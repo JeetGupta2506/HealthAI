@@ -42,6 +42,11 @@ export function SignUpPage() {
       setIsLoading(false);
       // Handle sign up logic here
       console.log('Sign up:', formData);
+      
+      // If all details are valid, navigate to dashboard
+      if (isFormValid) {
+        navigate('/dashboard');
+      }
     }, 2000);
   };
 

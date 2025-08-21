@@ -96,12 +96,6 @@ export function LandingPage() {
               >
                 Sign In
               </Button>
-              <Button 
-                size="sm"
-                onClick={() => navigate('/signup')}
-              >
-                Get Started
-              </Button>
               <SimpleThemeToggle />
             </div>
           </div>
@@ -129,7 +123,7 @@ export function LandingPage() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="group" onClick={() => navigate('/dashboard')}>
+                <Button size="lg" className="group" onClick={() => navigate('/signup')}>
                   Start Your Health Journey
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
