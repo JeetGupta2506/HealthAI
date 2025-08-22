@@ -214,7 +214,7 @@ export function LandingPage() {
       </section>
 
       {/* How it Works Section */}
-      <section id="how-it-works" className="py-20 bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
+      <section id="how-it-works" className="py-20 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-900 dark:to-blue-900/20 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">How HealthAI Works</h2>
@@ -227,32 +227,37 @@ export function LandingPage() {
                 step: '01',
                 title: 'Connect Your Data',
                 description: 'Securely link your health devices and input your medical history.',
-                icon: <Shield className="w-8 h-8" />
+                icon: <Shield className="w-8 h-8" />,
+                color: 'from-red-500 to-orange-500'
               },
               {
                 step: '02',
                 title: 'AI Analysis',
                 description: 'Our multi-agent AI system analyzes your data and identifies patterns.',
-                icon: <Brain className="w-8 h-8" />
+                icon: <Brain className="w-8 h-8" />,
+                color: 'from-purple-500 to-pink-500'
               },
               {
                 step: '03',
                 title: 'Get Insights',
                 description: 'Receive personalized recommendations and track your progress.',
-                icon: <Heart className="w-8 h-8" />
+                icon: <Heart className="w-8 h-8" />,
+                color: 'from-blue-600 to-blue-700'
               }
             ].map((item, index) => (
               <div key={index} className="text-center group">
-                <div className="relative mb-8">
-                  <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
-                    <div className="text-gray-600 dark:text-gray-400">{item.icon}</div>
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                  <div className="relative mb-8">
+                    <div className={`w-20 h-20 bg-gradient-to-br ${item.color} rounded-full shadow-lg flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300`}>
+                      <div className="text-white">{item.icon}</div>
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      {item.step}
+                    </div>
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                    {item.step}
-                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{item.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300">{item.description}</p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{item.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300">{item.description}</p>
               </div>
             ))}
           </div>
@@ -260,7 +265,7 @@ export function LandingPage() {
       </section>
 
       {/* AI Technology Showcase */}
-<section className="py-20 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-700">
+<section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-blue-900/30">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div className="text-center mb-16">
       <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -277,23 +282,28 @@ export function LandingPage() {
           icon: <Brain className="w-8 h-8" />,
           title: 'Multi-Agent Architecture',
           description: 'Specialized AI agents work together - from symptom analysis to nutrition planning',
-          tech: 'LangGraph + CrewAI'
+          tech: 'LangGraph + CrewAI',
+          color: 'from-purple-500 to-pink-500'
         },
         {
           icon: <Zap className="w-8 h-8" />,
           title: 'Advanced Language Model',
           description: 'Powered by Google Gemini for natural, contextual health conversations',
-          tech: 'Gemini Pro'
+          tech: 'Gemini Pro',
+          color: 'from-green-500 to-emerald-500'
         },
         {
           icon: <Shield className="w-8 h-8" />,
           title: 'Real-time Processing',
           description: 'Instant health insights and recommendations with secure data handling',
-          tech: 'FastAPI + React'
+          tech: 'FastAPI + React',
+          color: 'from-red-500 to-orange-500'
         }
       ].map((item, index) => (
         <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-          <div className="text-gray-600 dark:text-gray-400 mb-4">{item.icon}</div>
+          <div className={`w-16 h-16 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white mb-4`}>
+            {item.icon}
+          </div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{item.title}</h3>
           <p className="text-gray-600 dark:text-gray-300 mb-3">{item.description}</p>
           <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 text-sm rounded-full">
@@ -306,7 +316,7 @@ export function LandingPage() {
 </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-white dark:bg-black">
+      <section id="testimonials" className="py-20 bg-gradient-to-br from-blue-50 to-slate-50 dark:from-gray-900 dark:to-blue-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">What Our Users Say</h2>

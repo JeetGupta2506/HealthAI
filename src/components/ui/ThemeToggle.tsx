@@ -21,44 +21,47 @@ export function ThemeToggle() {
             className={`
               relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 group
               focus:outline-none focus:ring-2 focus:ring-offset-2 
-              ${theme === value 
-                ? `bg-gradient-to-br shadow-lg transform scale-105 ring-2 ring-offset-2
-                   ${value === 'light' 
-                     ? 'from-amber-400 to-orange-600 !text-white ring-amber-800/20 ring-offset-white dark:ring-offset-slate-grey-900' 
-                     : value === 'dark'
-                     ? 'from-blue-600 to-blue-700 !text-white ring-blue-500/20 ring-offset-white dark:ring-offset-gray-900'
-                     : 'from-emerald-600 to-teal-600 !text-white ring-emerald-500/20 ring-offset-white dark:ring-offset-slate-grey-900'
-                   }` 
-                : `text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 
-                   hover:bg-white/60 dark:hover:bg-gray-700/60 hover:shadow-md hover:scale-105
-                   focus:ring-blue-500/30 focus:ring-offset-white dark:focus:ring-offset-gray-900`
-              }
+                             ${theme === value 
+                 ? `bg-gradient-to-br shadow-lg transform scale-105 ring-2 ring-offset-2
+                    ${value === 'light' 
+                      ? 'from-yellow-200 to-blue-200 !text-white ring-yellow-300/30 ring-offset-white dark:ring-offset-slate-grey-900' 
+                      : value === 'dark'
+                      ? 'from-blue-600 to-blue-700 !text-white ring-blue-500/20 ring-offset-white dark:ring-offset-gray-900'
+                      : 'from-emerald-600 to-teal-600 !text-white ring-emerald-500/20 ring-offset-white dark:ring-offset-slate-grey-900'
+                    }` 
+                 : `text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 
+                    hover:bg-white/60 dark:hover:bg-gray-700/60 hover:shadow-md hover:scale-105
+                    focus:ring-blue-500/30 focus:ring-offset-white dark:focus:ring-offset-gray-900`
+               }
             `}
             aria-label={label}
             title={label}
           >
-            <Icon className={`w-5 h-5 transition-transform duration-300 ${theme === value ? 'animate-pulse' : 'group-hover:rotate-12'}`} />
+                         <Icon className={`w-5 h-5 transition-transform duration-300 ${theme === value ? 'animate-pulse' : 'group-hover:rotate-12'} ${theme === value ? (value === 'light' ? 'text-gray-900' : 'text-white') : 'text-gray-700 dark:text-gray-300'}`} />
             
-            {/* Active indicator glow */}
-            {theme === value && (
-              <>
-                <div className="absolute inset-0 rounded-lg bg-white/20 animate-pulse"></div>
-                <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-current/20 to-transparent blur-md"></div>
-              </>
-            )}
+                         {/* Active indicator glow */}
+             {theme === value && (
+               <>
+                 {value === 'dark' ? (
+                   <div className="absolute inset-0 rounded-lg bg-blue-100/20 animate-pulse"></div>
+                 ) : (
+                   <div className="absolute inset-0 rounded-lg bg-gray-100/30 animate-pulse"></div>
+                 )}
+               </>
+             )}
           </button>
         ))}
         
-        {/* Animated background indicator */}
-        <div 
-          className={`
-            absolute w-10 h-10 rounded-lg transition-all duration-500 ease-out pointer-events-none
-            bg-gradient-to-br opacity-20 blur-sm
-            ${actualTheme === 'light' 
-              ? 'from-amber-600 to-orange-600' 
-              : 'from-blue-600 to-blue-700'
-            }
-          `}
+                 {/* Animated background indicator */}
+         <div 
+           className={`
+             absolute w-10 h-10 rounded-lg transition-all duration-500 ease-out pointer-events-none
+             bg-gradient-to-br opacity-20 blur-sm
+             ${actualTheme === 'light' 
+               ? 'from-yellow-300 to-blue-300' 
+               : 'from-blue-600 to-blue-700'
+             }
+           `}
           style={{
             transform: `translateX(${themes.findIndex(t => t.value === theme) * 44}px)`
           }}
@@ -83,7 +86,7 @@ export function SimpleThemeToggle() {
         relative p-3 rounded-xl transition-all duration-300 group overflow-hidden
         bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900
         hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-800
-        text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100
+        text-white
         shadow-lg hover:shadow-xl dark:shadow-gray-900/30
         border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/50 dark:hover:border-gray-600/50
         focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-2
@@ -98,8 +101,8 @@ export function SimpleThemeToggle() {
         absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
         bg-gradient-to-br
         ${actualTheme === 'light' 
-          ? 'from-blue-600/10 to-blue-700/10' 
-          : 'from-amber-600/10 to-orange-600/10'
+          ? 'from-blue-500/20 to-blue-600/20' 
+          : 'from-amber-500/20 to-orange-500/20'
         }
       `} />
       
@@ -117,8 +120,8 @@ export function SimpleThemeToggle() {
         absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none
         shadow-lg
         ${actualTheme === 'light' 
-          ? 'shadow-blue-600/20' 
-          : 'shadow-amber-600/20'
+          ? 'shadow-blue-500/20' 
+          : 'shadow-amber-500/20'
         }
       `} />
     </button>
