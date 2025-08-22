@@ -1,55 +1,28 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 import os
 import json
 from datetime import datetime
+from sqlalchemy.orm import Session
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
 from dotenv import load_dotenv
+
+# Import database and models
+from database import get_db, create_tables
+from models import User, ChatSession, ChatMessage, Medication
+from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
+
 load_dotenv()
 
 import re
 
-# Medication storage
-MEDICATIONS_FILE = "medications.json"
-
-def load_medications():
-    """Load medications from JSON file"""
-    try:
-        if os.path.exists(MEDICATIONS_FILE):
-            with open(MEDICATIONS_FILE, 'r') as f:
-                data = json.load(f)
-                # Convert string dates back to datetime objects
-                for med in data:
-                    if 'startDate' in med and isinstance(med['startDate'], str):
-                        med['startDate'] = datetime.fromisoformat(med['startDate'])
-                return data
-        return []
-    except Exception as e:
-        print(f"Error loading medications: {e}")
-        return []
-
-def save_medications(medications):
-    """Save medications to JSON file"""
-    try:
-        # Convert datetime objects to strings for JSON serialization
-        data_to_save = []
-        for med in medications:
-            med_copy = med.copy()
-            if 'startDate' in med_copy and isinstance(med_copy['startDate'], datetime):
-                med_copy['startDate'] = med_copy['startDate'].isoformat()
-            data_to_save.append(med_copy)
-        
-        with open(MEDICATIONS_FILE, 'w') as f:
-            json.dump(data_to_save, f, indent=2)
-        return True
-    except Exception as e:
-        print(f"Error saving medications: {e}")
-        return False
+# Initialize database tables
+create_tables()
 
 def format_response(text: str) -> str:
     """
@@ -76,13 +49,9 @@ def format_response(text: str) -> str:
     # Add spacing after sentences
     text = re.sub(r'([.!?])\s+(?=[A-Z])', r'\1\n\n', text)
 
-    
-
     return text.strip()
 
-
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -95,7 +64,11 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
     agent_type: Optional[str] = "general"
+    user_id: Optional[int] = None  # Add user identification
 
+class ChatResponse(BaseModel):
+    response: str
+    session_id: str
 
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
@@ -185,16 +158,6 @@ class SymptomAssessmentResponse(BaseModel):
     conditions: list
     recommendations: list
 
-class Medication(BaseModel):
-    id: str
-    name: str
-    dosage: str
-    frequency: str
-    timeToTake: List[str]
-    prescribedBy: str
-    startDate: datetime
-    instructions: Optional[str] = None
-
 class MedicationCreate(BaseModel):
     name: str
     dosage: str
@@ -212,23 +175,141 @@ def read_root():
 def health_check():
     return {"status": "ok"}
 
-@app.post("/chat")
-async def chat_endpoint(request: ChatRequest):
-    print("DEBUG /chat received:", request)
-    state = {"agent_type": request.agent_type, "message": request.message}
+@app.post("/api/signup")
+async def signup(username: str, email: str, password: str, db: Session = Depends(get_db)):
+    """User signup endpoint"""
     try:
-        result = chat_workflow.invoke(state)
-        if not result or not isinstance(result, dict):
-            print("DEBUG /chat returning: Sorry, I couldn't generate a response (workflow returned nothing).")
-            return {"response": "Sorry, I couldn't generate a response (workflow returned nothing)."}
-        raw_response = result.get("response", "Sorry, I couldn't generate a response.")
-        formatted_response = format_response(raw_response)
-        print("DEBUG /chat formatted response:", formatted_response)
-        return {"response": formatted_response}
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.username == username).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already registered")
+        
+        existing_email = db.query(User).filter(User.email == email).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Create new user with hashed password
+        password_hash = get_password_hash(password)
+        new_user = User(username=username, email=email, password_hash=password_hash)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        return {"success": True, "message": "User created successfully", "user_id": new_user.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
+
+@app.post("/api/signin")
+async def signin(username: str, password: str, db: Session = Depends(get_db)):
+    """User signin endpoint"""
+    user = authenticate_user(db, username, password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password"
+        )
+    
+    # Create access token
+    access_token = create_access_token(
+        data={"sub": str(user.id), "username": user.username}
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user.id,
+        "username": user.username
+    }
+
+@app.post("/api/users")
+async def create_user(username: str, email: str, db: Session = Depends(get_db)):
+    """Create a test user for development (legacy endpoint)"""
+    try:
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.username == username).first()
+        if existing_user:
+            return {"success": True, "user": existing_user, "message": "User already exists"}
+        
+        # Create new user with default password
+        password_hash = get_password_hash("password123")  # Default password
+        new_user = User(username=username, email=email, password_hash=password_hash)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        return {"success": True, "user": new_user, "message": "User created successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
+
+@app.get("/api/users")
+async def get_users(db: Session = Depends(get_db)):
+    """Get all users for testing"""
+    users = db.query(User).all()
+    return {"users": users}
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
+    print("DEBUG /chat received:", request)
+    
+    try:
+        # Create a new chat session first
+        user_id = request.user_id or 1  # Default to user 1 for testing
+        session_id = f"session_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Create chat session
+        chat_session = ChatSession(
+            user_id=user_id,
+            session_id=session_id,
+            agent_type=request.agent_type
+        )
+        db.add(chat_session)
+        db.flush()  # Get the ID without committing yet
+        
+        # Store user message
+        user_message = ChatMessage(
+            session_id=chat_session.id,  # Use the actual session ID
+            message_type="user",
+            content=request.message,
+            message_metadata={"agent_type": request.agent_type}
+        )
+        db.add(user_message)
+        
+        # Generate AI response
+        state = {"agent_type": request.agent_type, "message": request.message}
+        try:
+            result = chat_workflow.invoke(state)
+            if not result or not isinstance(result, dict):
+                response_text = "Sorry, I couldn't generate a response (workflow returned nothing)."
+            else:
+                raw_response = result.get("response", "Sorry, I couldn't generate a response.")
+                response_text = format_response(raw_response)
+            
+            # Store AI response
+            ai_message = ChatMessage(
+                session_id=chat_session.id,  # Use the actual session ID
+                message_type="assistant",
+                content=response_text,
+                message_metadata={"agent_type": request.agent_type}
+            )
+            db.add(ai_message)
+            
+            # Commit everything to database
+            db.commit()
+            
+            print(f"DEBUG: Chat session {chat_session.id} created, messages stored")
+            return ChatResponse(response=response_text, session_id=session_id)
+
+        except Exception as e:
+            db.rollback()
+            print("ERROR in AI response generation:", e)
+            raise HTTPException(status_code=500, detail=f"AI response error: {str(e)}")
 
     except Exception as e:
+        db.rollback()
         print("ERROR in /chat:", e)
-        return {"response": f"Internal server error: {str(e)}"}
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/api/assess-symptoms", response_model=SymptomAssessmentResponse)
 async def assess_symptoms(request: SymptomAssessmentRequest):
@@ -263,46 +344,60 @@ async def assess_symptoms(request: SymptomAssessmentRequest):
         }
 
 @app.get("/api/medications")
-async def get_medications():
-    """Get all medications"""
-    medications = load_medications()
+async def get_medications(user_id: Optional[int] = None, db: Session = Depends(get_db)):
+    """Get all medications for a user"""
+    if user_id is None:
+        # For testing purposes, return all medications
+        medications = db.query(Medication).all()
+    else:
+        medications = db.query(Medication).filter(Medication.user_id == user_id).all()
     return {"medications": medications}
 
 @app.post("/api/medications")
-async def create_medication(medication: MedicationCreate):
+async def create_medication(medication: MedicationCreate, user_id: Optional[int] = 1, db: Session = Depends(get_db)):
     """Create a new medication"""
-    medications = load_medications()
+    db_medication = Medication(
+        user_id=user_id,
+        name=medication.name,
+        dosage=medication.dosage,
+        frequency=medication.frequency,
+        time_to_take=medication.timeToTake,
+        prescribed_by=medication.prescribedBy,
+        start_date=medication.startDate,
+        instructions=medication.instructions
+    )
     
-    # Generate unique ID
-    new_id = str(len(medications) + 1)
-    while any(med['id'] == new_id for med in medications):
-        new_id = str(int(new_id) + 1)
+    db.add(db_medication)
+    db.commit()
+    db.refresh(db_medication)
     
-    new_medication = {
-        "id": new_id,
-        **medication.dict()
-    }
-    
-    medications.append(new_medication)
-    
-    if save_medications(medications):
-        return {"success": True, "medication": new_medication}
-    else:
-        return {"success": False, "error": "Failed to save medication"}
+    return {"success": True, "medication": db_medication}
 
 @app.delete("/api/medications/{medication_id}")
-async def delete_medication(medication_id: str):
+async def delete_medication(medication_id: int, user_id: Optional[int] = 1, db: Session = Depends(get_db)):
     """Delete a medication"""
-    medications = load_medications()
+    medication = db.query(Medication).filter(
+        Medication.id == medication_id,
+        Medication.user_id == user_id
+    ).first()
     
-    # Find and remove the medication
-    original_count = len(medications)
-    medications = [med for med in medications if med['id'] != medication_id]
+    if not medication:
+        raise HTTPException(status_code=404, detail="Medication not found")
     
-    if len(medications) < original_count:
-        if save_medications(medications):
-            return {"success": True, "message": "Medication deleted successfully"}
-        else:
-            return {"success": False, "error": "Failed to save medications after deletion"}
-    else:
-        return {"success": False, "error": "Medication not found"}
+    db.delete(medication)
+    db.commit()
+    
+    return {"success": True, "message": "Medication deleted successfully"}
+
+# Add new endpoints for chat history
+@app.get("/api/chat-history/{user_id}")
+async def get_chat_history(user_id: int, db: Session = Depends(get_db)):
+    """Get chat history for a user"""
+    sessions = db.query(ChatSession).filter(ChatSession.user_id == user_id).all()
+    return {"sessions": sessions}
+
+@app.get("/api/chat-messages/{session_id}")
+async def get_chat_messages(session_id: int, db: Session = Depends(get_db)):
+    """Get messages for a specific chat session"""
+    messages = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
+    return {"messages": messages}
