@@ -11,12 +11,16 @@ interface AddMedicationForm {
   timeToTake: string[];
   prescribedBy: string;
   startDate: string;
+  endDate: string;
   instructions: string;
+  dosesAlreadyTaken: number;
 }
 
 export function MedicationReminders() {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [takenToday, setTakenToday] = useState<Set<string>>(new Set());
+  // Track total doses taken today for each medication (not just if it's marked as taken)
+  const [dosesTakenToday, setDosesTakenToday] = useState<Map<string, number>>(new Map());
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<AddMedicationForm>({
@@ -26,7 +30,9 @@ export function MedicationReminders() {
     timeToTake: [''],
     prescribedBy: '',
     startDate: new Date().toISOString().split('T')[0],
-    instructions: ''
+    endDate: '',
+    instructions: '',
+    dosesAlreadyTaken: 0
   });
 
   // Fetch medications on component mount
@@ -34,15 +40,63 @@ export function MedicationReminders() {
     fetchMedications();
   }, []);
 
+  // Check and reset taken status for all medications every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      medications.forEach(medication => {
+        checkAndResetTakenStatus(medication);
+      });
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [medications]);
+
+  // Check taken status when medications are loaded
+  useEffect(() => {
+    if (medications.length > 0) {
+      medications.forEach(medication => {
+        checkAndResetTakenStatus(medication);
+      });
+    }
+  }, [medications]);
+
+  // Note: Daily reset is now handled by the backend - each date has its own tracking data
+
   const fetchMedications = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/medications');
-      if (response.ok) {
-        const data = await response.json();
-        setMedications(data.medications || []);
+      const [medicationsResponse, dosesResponse] = await Promise.all([
+        fetch('http://localhost:8000/api/medications'),
+        fetch('http://localhost:8000/api/doses-taken')
+      ]);
+
+      if (medicationsResponse.ok) {
+        const medicationsData = await medicationsResponse.json();
+        setMedications(medicationsData.medications || []);
+      }
+
+      if (dosesResponse.ok) {
+        const dosesData = await dosesResponse.json();
+        const today = new Date().toISOString().split('T')[0];
+        const todayDoses = dosesData.doses_taken[today] || {};
+        
+        // Convert to Map format for dosesTakenToday
+        const dosesMap = new Map();
+        for (const [medId, doseInfo] of Object.entries(todayDoses)) {
+          dosesMap.set(medId, (doseInfo as any).count);
+        }
+        setDosesTakenToday(dosesMap);
+        
+        // Also set takenToday based on current doses
+        const takenSet = new Set<string>();
+        for (const [medId, count] of dosesMap.entries()) {
+          if (count > 0) {
+            takenSet.add(medId);
+          }
+        }
+        setTakenToday(takenSet);
       }
     } catch (error) {
-      console.error('Error fetching medications:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -50,25 +104,95 @@ export function MedicationReminders() {
 
   const addMedication = async () => {
     try {
+      // Validate required fields
+      if (!formData.name || !formData.dosage || !formData.frequency || !formData.prescribedBy) {
+        console.error('Missing required fields');
+        return;
+      }
+
+      // Filter out empty time fields
+      const validTimes = formData.timeToTake.filter(time => time.trim() !== '');
+      if (validTimes.length === 0) {
+        console.error('At least one time must be specified');
+        return;
+      }
+
+      const medicationData = {
+        name: formData.name,
+        dosage: formData.dosage,
+        frequency: formData.frequency,
+        timeToTake: validTimes,
+        prescribedBy: formData.prescribedBy,
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
+        instructions: formData.instructions || undefined
+      };
+
+      console.log('Sending medication data:', medicationData);
+
       const response = await fetch('http://localhost:8000/api/medications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          startDate: new Date(formData.startDate).toISOString(),
-          timeToTake: formData.timeToTake.filter(time => time.trim() !== '')
-        }),
+        body: JSON.stringify(medicationData),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setMedications(prev => [...prev, data.medication]);
-          setShowAddForm(false);
-          resetForm();
-        }
+      console.log('Response status:', response.status);
+
+             if (response.ok) {
+         const data = await response.json();
+         console.log('Response data:', data);
+         if (data.success) {
+           const newMedication = data.medication;
+           setMedications(prev => [...prev, newMedication]);
+           
+                       // If user indicated they've already taken doses today, mark them as taken
+            if (formData.dosesAlreadyTaken > 0) {
+              setTakenToday(prev => {
+                const newSet = new Set(prev);
+                // Mark the medication as taken for the number of doses already taken
+                for (let i = 0; i < formData.dosesAlreadyTaken; i++) {
+                  newSet.add(newMedication.id);
+                }
+                return newSet;
+              });
+              
+              // Also track the count of doses already taken
+              setDosesTakenToday(prev => {
+                const newMap = new Map(prev);
+                newMap.set(newMedication.id, formData.dosesAlreadyTaken);
+                return newMap;
+              });
+
+              // Save to backend
+              try {
+                const today = new Date().toISOString().split('T')[0];
+                await fetch('http://localhost:8000/api/doses-taken', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    medicationId: newMedication.id,
+                    date: today,
+                    count: formData.dosesAlreadyTaken
+                  }),
+                });
+              } catch (error) {
+                console.error('Failed to save initial doses taken to backend:', error);
+              }
+            }
+           
+           setShowAddForm(false);
+           resetForm();
+           console.log('Medication added successfully!');
+         } else {
+           console.error('Backend error:', data.message || 'Unknown error');
+         }
+       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('HTTP error:', response.status, errorData);
       }
     } catch (error) {
       console.error('Error adding medication:', error);
@@ -91,6 +215,13 @@ export function MedicationReminders() {
             newSet.delete(medId);
             return newSet;
           });
+          
+          // Also remove from dosesTakenToday
+          setDosesTakenToday(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(medId);
+            return newMap;
+          });
         }
       }
     } catch (error) {
@@ -106,7 +237,9 @@ export function MedicationReminders() {
       timeToTake: [''],
       prescribedBy: '',
       startDate: new Date().toISOString().split('T')[0],
-      instructions: ''
+      endDate: '',
+      instructions: '',
+      dosesAlreadyTaken: 0
     });
   };
 
@@ -131,16 +264,127 @@ export function MedicationReminders() {
     }));
   };
 
-  const toggleTaken = (medId: string) => {
-    setTakenToday(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(medId)) {
-        newSet.delete(medId);
+  const toggleTaken = async (medId: string) => {
+    try {
+      const newTakenToday = new Set(takenToday);
+      const currentCount = dosesTakenToday.get(medId) || 0;
+      let newCount = currentCount;
+
+      if (takenToday.has(medId)) {
+        // If it was marked as taken, decrease the count
+        newTakenToday.delete(medId);
+        newCount = Math.max(0, currentCount - 1);
       } else {
-        newSet.add(medId);
+        // If it's being marked as taken, increase the count
+        newTakenToday.add(medId);
+        newCount = currentCount + 1;
       }
-      return newSet;
-    });
+
+      // Update local state immediately
+      setTakenToday(newTakenToday);
+      setDosesTakenToday(prev => {
+        const newMap = new Map(prev);
+        newMap.set(medId, newCount);
+        return newMap;
+      });
+
+      // Save to backend
+      const today = new Date().toISOString().split('T')[0];
+      const response = await fetch('http://localhost:8000/api/doses-taken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          medicationId: medId,
+          date: today,
+          count: newCount
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to save dose tracking to backend');
+        // Revert local state if backend save failed
+        setTakenToday(takenToday);
+        setDosesTakenToday(prev => {
+          const newMap = new Map(prev);
+          newMap.set(medId, currentCount);
+          return newMap;
+        });
+      }
+    } catch (error) {
+      console.error('Error updating dose tracking:', error);
+      // Revert local state on error
+      setTakenToday(takenToday);
+      setDosesTakenToday(prev => {
+        const newMap = new Map(prev);
+        newMap.set(medId, dosesTakenToday.get(medId) || 0);
+        return newMap;
+      });
+    }
+  };
+
+  // Check if it's time for the next dose and reset taken status if needed
+  const checkAndResetTakenStatus = (medication: Medication) => {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    // Find the next dose time
+    let nextDoseTime = null;
+    for (const time of medication.timeToTake) {
+      if (time.trim()) {
+        const [hours, minutes] = time.split(':').map(Number);
+        const doseTime = hours * 60 + minutes;
+        if (doseTime > currentTime) {
+          nextDoseTime = doseTime;
+          break;
+        }
+      }
+    }
+    
+    // Only reset taken status if:
+    // 1. We found a next dose time
+    // 2. It's within 120 minutes (2 hours) of the next dose time
+    // 3. The medication is currently marked as taken
+    // 4. AND the user hasn't already taken the dose for this specific time
+    if (nextDoseTime && (nextDoseTime - currentTime) <= 120 && takenToday.has(medication.id)) {
+      // Check if this is actually the next dose the user needs to take
+      const today = new Date();
+      const start = new Date(medication.startDate);
+      
+      // Reset time to start of day for accurate calculation
+      start.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      
+      // Only reset if medication has started
+      if (today >= start) {
+        // Check if the user has already taken the dose for the next dose time
+        // by looking at how many doses they've taken vs. how many they should have taken by now
+        
+        const actualDosesTaken = dosesTakenToday.get(medication.id) || 0;
+        let expectedDosesByNow = 0;
+        
+        for (const time of medication.timeToTake) {
+          if (time.trim()) {
+            const [hours, minutes] = time.split(':').map(Number);
+            const doseTime = hours * 60 + minutes;
+            if (doseTime <= currentTime) {
+              expectedDosesByNow++;
+            }
+          }
+        }
+        
+        // Only reset if the user hasn't taken enough doses to cover what should have been taken by now
+        // AND they haven't taken the dose for the next scheduled time
+        if (actualDosesTaken < expectedDosesByNow) {
+          setTakenToday(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(medication.id);
+            return newSet;
+          });
+        }
+      }
+    }
   };
 
   const getNextDose = (times: string[]) => {
@@ -155,6 +399,129 @@ export function MedicationReminders() {
       }
     }
     return times[0]; // Next day's first dose
+  };
+
+  const getRemainingDays = (startDate: Date, frequency: string, timeToTake: string[], endDate?: Date) => {
+    if (!endDate) return null;
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    
+    // Reset time to start of day for accurate calculation
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    // If medication hasn't started yet
+    if (today < start) {
+      const diffTime = start.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    }
+    
+    // If medication has ended
+    if (today > end) {
+      return 0;
+    }
+    
+    // Calculate total days of the medication course
+    const totalCourseDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Calculate days elapsed since start
+    const daysElapsed = Math.ceil((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Calculate remaining days
+    const remainingDays = totalCourseDays - daysElapsed;
+    
+    return Math.max(0, remainingDays);
+  };
+
+  const getRemainingDoses = (startDate: Date, endDate: Date, frequency: string, timeToTake: string[], medicationId: string) => {
+    if (!endDate) return null;
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    
+    // Reset time to start of day for accurate calculation
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    // If medication hasn't started yet
+    if (today < start) {
+      return null;
+    }
+    
+    // If medication has ended
+    if (today > end) {
+      return 0;
+    }
+    
+    // Calculate total days of the medication course
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Calculate doses per day based on frequency and times
+    let dosesPerDay = 1; // Default
+    
+    if (frequency.includes('daily')) {
+      if (frequency.includes('Once')) {
+        dosesPerDay = 1;
+      } else if (frequency.includes('Twice')) {
+        dosesPerDay = 2;
+      } else if (frequency.includes('Three times')) {
+        dosesPerDay = 3;
+      }
+    } else if (frequency.includes('Every')) {
+      const hours = parseInt(frequency.match(/\d+/)?.[0] || '24');
+      dosesPerDay = Math.ceil(24 / hours);
+    } else if (frequency === 'As needed') {
+      dosesPerDay = 1; // Default for as needed
+    }
+    
+    // Use the actual number of times specified if available
+    if (timeToTake && timeToTake.length > 0) {
+      dosesPerDay = timeToTake.length;
+    }
+    
+    // Calculate total doses in the course
+    const totalDoses = totalDays * dosesPerDay;
+    
+    // Calculate doses that should have been taken so far
+    const daysElapsed = Math.ceil((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    let expectedDoses = 0;
+    
+    if (daysElapsed > 0) {
+      // For completed days, count all doses
+      expectedDoses = (daysElapsed - 1) * dosesPerDay;
+      
+      // For today, count doses that should have been taken by now
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      let todayDoses = 0;
+      for (const time of timeToTake) {
+        if (time.trim()) {
+          const [hours, minutes] = time.split(':').map(Number);
+          const doseTime = hours * 60 + minutes;
+          if (doseTime <= currentTime) {
+            todayDoses++;
+          }
+        }
+      }
+      
+      expectedDoses += todayDoses;
+    }
+    
+    // Calculate remaining doses based on expected doses
+    let remainingDoses = Math.max(0, totalDoses - expectedDoses);
+    
+    // Subtract the actual doses taken today (this is the key fix!)
+    const actualDosesTakenToday = dosesTakenToday.get(medicationId) || 0;
+    remainingDoses = Math.max(0, remainingDoses - actualDosesTakenToday);
+    
+    return remainingDoses;
   };
 
   if (loading) {
@@ -192,6 +559,51 @@ export function MedicationReminders() {
               {medications.map((medication) => {
                 const isTaken = takenToday.has(medication.id);
                 const nextDose = getNextDose(medication.timeToTake);
+                                 const remainingDays = getRemainingDays(medication.startDate, medication.frequency, medication.timeToTake, medication.endDate);
+                 const remainingDoses = medication.endDate ? getRemainingDoses(medication.startDate, medication.endDate, medication.frequency, medication.timeToTake, medication.id) : null;
+                 
+                                   // Debug logging for dose calculation
+                  if (medication.endDate && remainingDoses !== null) {
+                    const start = new Date(medication.startDate);
+                    const end = new Date(medication.endDate);
+                    const today = new Date();
+                    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                    const dosesPerDay = medication.timeToTake.length;
+                    const totalDoses = totalDays * dosesPerDay;
+                    
+                    // Calculate expected doses for debugging
+                    const daysElapsed = Math.ceil((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                    const now = new Date();
+                    const currentTime = now.getHours() * 60 + now.getMinutes();
+                    
+                    let todayDoses = 0;
+                    for (const time of medication.timeToTake) {
+                      if (time.trim()) {
+                        const [hours, minutes] = time.split(':').map(Number);
+                        const doseTime = hours * 60 + minutes;
+                        if (doseTime <= currentTime) {
+                          todayDoses++;
+                        }
+                      }
+                    }
+                    
+                    const expectedDoses = (daysElapsed - 1) * dosesPerDay + todayDoses;
+                    const isTaken = takenToday.has(medication.id);
+                    
+                    console.log(`Medication: ${medication.name}`, {
+                      totalDays,
+                      dosesPerDay,
+                      totalDoses,
+                      daysElapsed,
+                      todayDoses,
+                      expectedDoses,
+                      isTaken,
+                      remainingDoses,
+                      frequency: medication.frequency,
+                      times: medication.timeToTake,
+                      currentTime: `${Math.floor(currentTime/60)}:${(currentTime%60).toString().padStart(2,'0')}`
+                    });
+                  }
                 
                 return (
                   <div key={medication.id} className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
@@ -213,6 +625,13 @@ export function MedicationReminders() {
                         <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                         <span className="text-sm text-gray-500 dark:text-gray-400">Next: {nextDose}</span>
                       </div>
+                                             {remainingDoses !== null && (
+                         <div className="flex items-center gap-1 mt-1">
+                           <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
+                             {remainingDoses === 0 ? 'Completed' : `${remainingDoses} dose${remainingDoses === 1 ? '' : 's'} remaining`}
+                           </span>
+                         </div>
+                       )}
                       {medication.instructions && (
                         <div className="flex items-center gap-1 mt-1">
                           <AlertCircle className="w-4 h-4 text-amber-500" />
@@ -284,7 +703,7 @@ export function MedicationReminders() {
                   value={formData.dosage}
                   onChange={(e) => setFormData(prev => ({ ...prev, dosage: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="e.g., 10mg"
+                  placeholder="e.g., 10mg, 10ml, etc."
                 />
               </div>
 
@@ -373,16 +792,47 @@ export function MedicationReminders() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Instructions (Optional)
+                  End Date (Optional)
                 </label>
-                <textarea
-                  value={formData.instructions}
-                  onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
+                <input
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                  min={formData.startDate}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="e.g., Take with food"
-                  rows={3}
                 />
               </div>
+
+                             <div>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                   Instructions (Optional)
+                 </label>
+                 <textarea
+                   value={formData.instructions}
+                   onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
+                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                   placeholder="e.g., Take with food"
+                   rows={3}
+                 />
+               </div>
+
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                   Doses Already Taken Today
+                 </label>
+                 <input
+                   type="number"
+                   min="0"
+                   max="10"
+                   value={formData.dosesAlreadyTaken}
+                   onChange={(e) => setFormData(prev => ({ ...prev, dosesAlreadyTaken: parseInt(e.target.value) || 0 }))}
+                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                   placeholder="0"
+                 />
+                 <p className="text-xs text-gray-500 mt-1">
+                   If you've already taken some doses today, enter the count here
+                 </p>
+               </div>
 
               <div className="flex gap-3 pt-4">
                 <Button
@@ -396,8 +846,18 @@ export function MedicationReminders() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={addMedication}
-                  disabled={!formData.name || !formData.dosage || !formData.frequency || !formData.prescribedBy || formData.timeToTake.some(t => !t.trim())}
+                  onClick={() => {
+                    console.log('Form data before submission:', formData);
+                    addMedication();
+                  }}
+                  disabled={
+                    !formData.name || 
+                    !formData.dosage || 
+                    !formData.frequency || 
+                    !formData.prescribedBy || 
+                    formData.timeToTake.some(t => !t.trim()) ||
+                    (formData.endDate !== '' && formData.endDate <= formData.startDate)
+                  }
                   className="flex-1"
                 >
                   Add Medication

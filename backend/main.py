@@ -16,6 +16,7 @@ import re
 
 # Medication storage
 MEDICATIONS_FILE = "medications.json"
+DOSES_TAKEN_FILE = "doses_taken.json"
 
 def load_medications():
     """Load medications from JSON file"""
@@ -27,6 +28,8 @@ def load_medications():
                 for med in data:
                     if 'startDate' in med and isinstance(med['startDate'], str):
                         med['startDate'] = datetime.fromisoformat(med['startDate'])
+                    if 'endDate' in med and isinstance(med['endDate'], str):
+                        med['endDate'] = datetime.fromisoformat(med['endDate'])
                 return data
         return []
     except Exception as e:
@@ -42,6 +45,8 @@ def save_medications(medications):
             med_copy = med.copy()
             if 'startDate' in med_copy and isinstance(med_copy['startDate'], datetime):
                 med_copy['startDate'] = med_copy['startDate'].isoformat()
+            if 'endDate' in med_copy and isinstance(med_copy['endDate'], datetime):
+                med_copy['endDate'] = med_copy['endDate'].isoformat()
             data_to_save.append(med_copy)
         
         with open(MEDICATIONS_FILE, 'w') as f:
@@ -49,6 +54,43 @@ def save_medications(medications):
         return True
     except Exception as e:
         print(f"Error saving medications: {e}")
+        return False
+
+def load_doses_taken():
+    """Load doses taken tracking from JSON file"""
+    try:
+        if os.path.exists(DOSES_TAKEN_FILE):
+            with open(DOSES_TAKEN_FILE, 'r') as f:
+                data = json.load(f)
+                # Convert string dates back to datetime objects for the date field
+                for date_key, medications in data.items():
+                    for med_id, dose_data in medications.items():
+                        if 'date' in dose_data and isinstance(dose_data['date'], str):
+                            dose_data['date'] = datetime.fromisoformat(dose_data['date'])
+                return data
+        return {}
+    except Exception as e:
+        print(f"Error loading doses taken: {e}")
+        return {}
+
+def save_doses_taken(doses_taken):
+    """Save doses taken tracking to JSON file"""
+    try:
+        # Convert datetime objects to strings for JSON serialization
+        data_to_save = {}
+        for date_key, medications in doses_taken.items():
+            data_to_save[date_key] = {}
+            for med_id, dose_data in medications.items():
+                dose_copy = dose_data.copy()
+                if 'date' in dose_copy and isinstance(dose_copy['date'], datetime):
+                    dose_copy['date'] = dose_copy['date'].isoformat()
+                data_to_save[date_key][med_id] = dose_copy
+        
+        with open(DOSES_TAKEN_FILE, 'w') as f:
+            json.dump(data_to_save, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error saving doses taken: {e}")
         return False
 
 def format_response(text: str) -> str:
@@ -202,7 +244,13 @@ class MedicationCreate(BaseModel):
     timeToTake: List[str]
     prescribedBy: str
     startDate: datetime
+    endDate: Optional[datetime] = None
     instructions: Optional[str] = None
+
+class DoseTakenRequest(BaseModel):
+    medicationId: str
+    date: str  # ISO date string (YYYY-MM-DD)
+    count: int
 
 @app.get("/")
 def read_root():
@@ -300,9 +348,72 @@ async def delete_medication(medication_id: str):
     medications = [med for med in medications if med['id'] != medication_id]
     
     if len(medications) < original_count:
-        if save_medications(medications):
-            return {"success": True, "message": "Medication deleted successfully"}
+        # Also clean up dose tracking data for this medication
+        doses_taken = load_doses_taken()
+        for date_key in list(doses_taken.keys()):
+            if medication_id in doses_taken[date_key]:
+                del doses_taken[date_key][medication_id]
+            
+            # Remove empty date entries
+            if not doses_taken[date_key]:
+                del doses_taken[date_key]
+        
+        # Save both medications and doses taken
+        medications_saved = save_medications(medications)
+        doses_saved = save_doses_taken(doses_taken)
+        
+        if medications_saved and doses_saved:
+            return {"success": True, "message": "Medication and related data deleted successfully"}
         else:
-            return {"success": False, "error": "Failed to save medications after deletion"}
+            return {"success": False, "error": "Failed to save data after deletion"}
     else:
         return {"success": False, "error": "Medication not found"}
+
+@app.get("/api/doses-taken")
+async def get_doses_taken():
+    """Get all doses taken tracking data"""
+    doses_taken = load_doses_taken()
+    return {"doses_taken": doses_taken}
+
+@app.post("/api/doses-taken")
+async def update_doses_taken(request: DoseTakenRequest):
+    """Update doses taken for a medication on a specific date"""
+    doses_taken = load_doses_taken()
+    
+    # Get today's date as string key
+    date_key = request.date
+    
+    # Initialize date entry if it doesn't exist
+    if date_key not in doses_taken:
+        doses_taken[date_key] = {}
+    
+    # Update the medication's dose count for this date
+    doses_taken[date_key][request.medicationId] = {
+        "count": request.count,
+        "date": datetime.fromisoformat(request.date),
+        "medicationId": request.medicationId
+    }
+    
+    if save_doses_taken(doses_taken):
+        return {"success": True, "doses_taken": doses_taken[date_key][request.medicationId]}
+    else:
+        return {"success": False, "error": "Failed to save doses taken data"}
+
+@app.delete("/api/doses-taken/{medication_id}")
+async def delete_doses_taken(medication_id: str):
+    """Delete all dose tracking data for a medication (when medication is deleted)"""
+    doses_taken = load_doses_taken()
+    
+    # Remove this medication from all dates
+    for date_key in list(doses_taken.keys()):
+        if medication_id in doses_taken[date_key]:
+            del doses_taken[date_key][medication_id]
+        
+        # Remove empty date entries
+        if not doses_taken[date_key]:
+            del doses_taken[date_key]
+    
+    if save_doses_taken(doses_taken):
+        return {"success": True, "message": "Dose tracking data deleted successfully"}
+    else:
+        return {"success": False, "error": "Failed to save doses taken data after deletion"}
