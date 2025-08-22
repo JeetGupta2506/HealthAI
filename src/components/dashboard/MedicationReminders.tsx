@@ -10,14 +10,13 @@ interface AddMedicationForm {
   frequency: string;
   prescribedBy: string;
   startDate: string;
-  endDate: string;
-  totalDoses: number;
   instructions: string;
+  dosesAlreadyTaken: number;
 }
 
 export function MedicationReminders() {
   const [medications, setMedications] = useState<Medication[]>([]);
-  const [dosesTaken, setDosesTaken] = useState<Record<string, number>>({});
+  const [takenToday, setTakenToday] = useState<Set<string>>(new Set());
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -27,8 +26,6 @@ export function MedicationReminders() {
     frequency: '',
     prescribedBy: '',
     startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
-    totalDoses: 0,
     instructions: ''
   });
 
@@ -59,15 +56,63 @@ export function MedicationReminders() {
     fetchMedications();
   }, []);
 
+  // Check and reset taken status for all medications every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      medications.forEach(medication => {
+        checkAndResetTakenStatus(medication);
+      });
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [medications]);
+
+  // Check taken status when medications are loaded
+  useEffect(() => {
+    if (medications.length > 0) {
+      medications.forEach(medication => {
+        checkAndResetTakenStatus(medication);
+      });
+    }
+  }, [medications]);
+
+  // Note: Daily reset is now handled by the backend - each date has its own tracking data
+
   const fetchMedications = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/medications');
-      if (response.ok) {
-        const data = await response.json();
-        setMedications(data.medications || []);
+      const [medicationsResponse, dosesResponse] = await Promise.all([
+        fetch('http://localhost:8000/api/medications'),
+        fetch('http://localhost:8000/api/doses-taken')
+      ]);
+
+      if (medicationsResponse.ok) {
+        const medicationsData = await medicationsResponse.json();
+        setMedications(medicationsData.medications || []);
+      }
+
+      if (dosesResponse.ok) {
+        const dosesData = await dosesResponse.json();
+        const today = new Date().toISOString().split('T')[0];
+        const todayDoses = dosesData.doses_taken[today] || {};
+        
+        // Convert to Map format for dosesTakenToday
+        const dosesMap = new Map();
+        for (const [medId, doseInfo] of Object.entries(todayDoses)) {
+          dosesMap.set(medId, (doseInfo as any).count);
+        }
+        setDosesTakenToday(dosesMap);
+        
+        // Also set takenToday based on current doses
+        const takenSet = new Set<string>();
+        for (const [medId, count] of dosesMap.entries()) {
+          if (count > 0) {
+            takenSet.add(medId);
+          }
+        }
+        setTakenToday(takenSet);
       }
     } catch (error) {
-      console.error('Error fetching medications:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -88,9 +133,6 @@ export function MedicationReminders() {
 
   const addMedication = async () => {
     try {
-      // Calculate total doses automatically
-      const totalDoses = calculateTotalDoses(formData.frequency, formData.startDate, formData.endDate);
-      
       const response = await fetch('http://localhost:8000/api/medications', {
         method: 'POST',
         headers: {
@@ -99,18 +141,65 @@ export function MedicationReminders() {
         body: JSON.stringify({
           ...formData,
           startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString(),
-          totalDoses
+          timeToTake: formData.timeToTake.filter(time => time.trim() !== '')
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setMedications(prev => [...prev, data.medication]);
-          setShowAddForm(false);
-          resetForm();
-        }
+      console.log('Response status:', response.status);
+
+             if (response.ok) {
+         const data = await response.json();
+         console.log('Response data:', data);
+         if (data.success) {
+           const newMedication = data.medication;
+           setMedications(prev => [...prev, newMedication]);
+           
+                       // If user indicated they've already taken doses today, mark them as taken
+            if (formData.dosesAlreadyTaken > 0) {
+              setTakenToday(prev => {
+                const newSet = new Set(prev);
+                // Mark the medication as taken for the number of doses already taken
+                for (let i = 0; i < formData.dosesAlreadyTaken; i++) {
+                  newSet.add(newMedication.id);
+                }
+                return newSet;
+              });
+              
+              // Also track the count of doses already taken
+              setDosesTakenToday(prev => {
+                const newMap = new Map(prev);
+                newMap.set(newMedication.id, formData.dosesAlreadyTaken);
+                return newMap;
+              });
+
+              // Save to backend
+              try {
+                const today = new Date().toISOString().split('T')[0];
+                await fetch('http://localhost:8000/api/doses-taken', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    medicationId: newMedication.id,
+                    date: today,
+                    count: formData.dosesAlreadyTaken
+                  }),
+                });
+              } catch (error) {
+                console.error('Failed to save initial doses taken to backend:', error);
+              }
+            }
+           
+           setShowAddForm(false);
+           resetForm();
+           console.log('Medication added successfully!');
+         } else {
+           console.error('Backend error:', data.message || 'Unknown error');
+         }
+       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('HTTP error:', response.status, errorData);
       }
     } catch (error) {
       console.error('Error adding medication:', error);
@@ -197,11 +286,77 @@ export function MedicationReminders() {
             localStorage.setItem('medicationDosesTaken', JSON.stringify(newDoses));
             return newDoses;
           });
+          
+          // Also remove from dosesTakenToday
+          setDosesTakenToday(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(medId);
+            return newMap;
+          });
         }
       }
     } catch (error) {
       console.error('Error deleting medication:', error);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      dosage: '',
+      frequency: '',
+      timeToTake: [''],
+      prescribedBy: '',
+      startDate: new Date().toISOString().split('T')[0],
+      instructions: ''
+    });
+  };
+
+  const addTimeField = () => {
+    setFormData(prev => ({
+      ...prev,
+      timeToTake: [...prev.timeToTake, '']
+    }));
+  };
+
+  const removeTimeField = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      timeToTake: prev.timeToTake.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateTimeField = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      timeToTake: prev.timeToTake.map((time, i) => i === index ? value : time)
+    }));
+  };
+
+  const toggleTaken = (medId: string) => {
+    setTakenToday(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(medId)) {
+        newSet.delete(medId);
+      } else {
+        newSet.add(medId);
+      }
+      return newSet;
+    });
+  };
+
+  const getNextDose = (times: string[]) => {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    for (const time of times) {
+      const [hours, minutes] = time.split(':').map(Number);
+      const doseTime = hours * 60 + minutes;
+      if (doseTime > currentTime) {
+        return time;
+      }
+    }
+    return times[0]; // Next day's first dose
   };
 
   if (loading) {
@@ -259,177 +414,63 @@ export function MedicationReminders() {
               No medications added yet. Click "Add" to get started.
             </div>
           ) : (
-            <>
-              {/* Active Medications */}
-              {activeMedications.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Active Medications</h3>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">{activeMedications.length} active</span>
-                  </div>
-                  {activeMedications.map((medication) => {
-                    const remainingDoses = getRemainingDoses(medication);
-                    
-                    return (
-                      <div key={medication.id} className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
-                            <Pill className="w-5 h-5" />
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{medication.name}</h4>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{medication.dosage}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">{medication.frequency}</p>
-                            
-                            {/* Dose Progress */}
-                            {medication.totalDoses && (
-                              <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-100 dark:border-blue-800">
-                                {/* Remaining Doses - Prominently Displayed */}
-                                <div className="text-center mb-2">
-                                  <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                    {remainingDoses}
-                                  </div>
-                                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                                    Doses Left
-                                  </div>
-                                </div>
-                                
-                                {/* Progress Bar */}
-                                <div className="space-y-1">
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-600 dark:text-gray-400">Taken: {dosesTaken[medication.id] || 0}</span>
-                                    <span className="text-gray-600 dark:text-gray-400">Total: {medication.totalDoses}</span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                    <div 
-                                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                      style={{ 
-                                        width: `${medication.totalDoses ? ((dosesTaken[medication.id] || 0) / medication.totalDoses) * 100 : 0}%` 
-                                      }}
-                                    ></div>
-                                  </div>
-                                </div>
-                                
-                                {/* Status Indicators */}
-                                <div className="flex justify-center mt-2">
-                                  {remainingDoses === 0 ? (
-                                    <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full font-medium">
-                                      <Check className="w-3 h-3" />
-                                      Course Complete! 🎉
-                                    </div>
-                                  ) : remainingDoses <= 3 ? (
-                                    <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full font-medium">
-                                      <AlertCircle className="w-3 h-3" />
-                                      Running Low - {remainingDoses} doses left
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {medication.instructions && (
-                              <div className="flex items-center gap-1 mb-2">
-                                <AlertCircle className="w-3 h-3 text-amber-500" />
-                                <span className="text-xs text-amber-600 dark:text-gray-400">{medication.instructions}</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            {/* Dose Tracking Buttons */}
-                            {medication.totalDoses && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => markDoseTaken(medication.id)}
-                                  disabled={remainingDoses === 0}
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20 font-medium text-xs px-2 py-1"
-                                >
-                                  ✅ Take Dose
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => markDoseUntaken(medication.id)}
-                                  disabled={(dosesTaken[medication.id] || 0) === 0}
-                                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20 font-medium text-xs px-2 py-1"
-                                >
-                                  ↩️ Undo Dose
-                                </Button>
-                              </>
-                            )}
-                            
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => deleteMedication(medication.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 px-2 py-1"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Completed Medications */}
-              {completedMedications.length > 0 && (
-                <div className="space-y-3 mt-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Completed Courses</h3>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setShowCompleted(!showCompleted)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xs"
-                    >
-                      {showCompleted ? 'Hide' : 'Show'} ({completedMedications.length})
-                    </Button>
-                  </div>
-                  {showCompleted && (
-                    <div className="space-y-2">
-                      {completedMedications.map((medication) => (
-                        <div key={medication.id} className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-100 dark:border-green-800 transition-colors duration-200">
-                          <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0">
-                            <Check className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{medication.name}</h4>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{medication.dosage}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-300">{medication.frequency}</p>
-                            <div className="flex items-center gap-1 mt-1">
-                              <span className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
-                                Course Completed! 🎉
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => deleteMedication(medication.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 px-2 py-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
+            <div className="space-y-4">
+              {medications.map((medication) => {
+                const isTaken = takenToday.has(medication.id);
+                const nextDose = getNextDose(medication.timeToTake);
+                
+                return (
+                  <div key={medication.id} className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      isTaken 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                    }`}>
+                      {isTaken ? <Check className="w-6 h-6" /> : <Pill className="w-6 h-6" />}
                     </div>
-                  )}
-                </div>
-              )}
-            </>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-100">{medication.name}</h4>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">{medication.dosage}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{medication.frequency}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Next: {nextDose}</span>
+                      </div>
+                      {medication.instructions && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <AlertCircle className="w-4 h-4 text-amber-500" />
+                          <span className="text-sm text-amber-600 dark:text-amber-400">{medication.instructions}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant={isTaken ? 'ghost' : 'primary'}
+                        onClick={() => toggleTaken(medication.id)}
+                      >
+                        {isTaken ? 'Taken' : 'Mark Taken'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteMedication(medication.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Add Medication Modal */}
       {showAddForm && (
@@ -469,7 +510,7 @@ export function MedicationReminders() {
                   value={formData.dosage}
                   onChange={(e) => setFormData(prev => ({ ...prev, dosage: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="e.g., 10mg"
+                  placeholder="e.g., 10mg, 10ml, etc."
                 />
               </div>
 
@@ -554,16 +595,47 @@ export function MedicationReminders() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Instructions (Optional)
+                  End Date (Optional)
                 </label>
-                <textarea
-                  value={formData.instructions}
-                  onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
+                <input
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                  min={formData.startDate}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="e.g., Take with food"
-                  rows={3}
                 />
               </div>
+
+                             <div>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                   Instructions (Optional)
+                 </label>
+                 <textarea
+                   value={formData.instructions}
+                   onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
+                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                   placeholder="e.g., Take with food"
+                   rows={3}
+                 />
+               </div>
+
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                   Doses Already Taken Today
+                 </label>
+                 <input
+                   type="number"
+                   min="0"
+                   max="10"
+                   value={formData.dosesAlreadyTaken}
+                   onChange={(e) => setFormData(prev => ({ ...prev, dosesAlreadyTaken: parseInt(e.target.value) || 0 }))}
+                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                   placeholder="0"
+                 />
+                 <p className="text-xs text-gray-500 mt-1">
+                   If you've already taken some doses today, enter the count here
+                 </p>
+               </div>
 
               <div className="flex gap-3 pt-4">
                 <Button
@@ -578,7 +650,7 @@ export function MedicationReminders() {
                 </Button>
                 <Button
                   onClick={addMedication}
-                  disabled={!formData.name || !formData.dosage || !formData.frequency || !formData.prescribedBy || !formData.endDate}
+                  disabled={!formData.name || !formData.dosage || !formData.frequency || !formData.prescribedBy || formData.timeToTake.some(t => !t.trim())}
                   className="flex-1"
                 >
                   Add Medication

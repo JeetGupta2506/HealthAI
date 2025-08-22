@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { HealthProvider } from './contexts/HealthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { LandingPage } from './components/landing/LandingPage';
 import { SignUpPage } from './components/auth/SignUpPage';
 import { SignInPage } from './components/auth/SignInPage';
@@ -103,15 +104,17 @@ function App() {
   return (
     <ThemeProvider>
       <HealthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/signin" element={<SignInPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/signin" element={<SignInPage />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
       </HealthProvider>
     </ThemeProvider>
   );
