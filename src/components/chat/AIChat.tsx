@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Brain, Stethoscope, Apple, Heart } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../ui/Card';
+
 import { Button } from '../ui/Button';
 import { ChatMessage } from '../../types/health';
 import ReactMarkdown from "react-markdown"; 
@@ -91,13 +91,13 @@ export function AIChat() {
   };
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader 
-        title="AI Health Assistant" 
-        subtitle="Multi-agent AI system powered by Gemini, LangGraph & CrewAI"
-      />
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800">
+      <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Health Assistant</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Multi-agent AI system powered by Gemini, LangGraph & CrewAI</p>
+      </div>
       {/* Agent Selector */}
-      <div className="px-6 pb-4">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap gap-2">
           {agentTypes.map((agent) => (
             <button
@@ -106,7 +106,7 @@ export function AIChat() {
               className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 selectedAgent === agent.id 
                   ? `${agent.color} text-white shadow-md` 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 shadow-sm'
               }`}
             >
               {agent.icon}
@@ -116,7 +116,7 @@ export function AIChat() {
         </div>
       </div>
       {/* Messages */}
-      <CardContent className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-6">
         <div className="space-y-4">
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -126,11 +126,11 @@ export function AIChat() {
                 }`}>
                   {message.sender === 'user' ? <User className="w-4 h-4" /> : getAgentInfo(message.agentType).icon}
                 </div>
-                <div className={`rounded-2xl px-4 py-3 ${
-                  message.sender === 'user' 
-                    ? 'bg-gray-600 text-white' 
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-white'
-                }`}>
+                                 <div className={`rounded-2xl px-4 py-3 ${
+                   message.sender === 'user' 
+                     ? 'bg-blue-600 text-white shadow-md' 
+                     : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white shadow-md border border-gray-200 dark:border-gray-600'
+                 }`}>
                   <div className="prose prose-sm max-w-none">
                     <ReactMarkdown>
                       {message.content}
@@ -149,7 +149,7 @@ export function AIChat() {
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAgentInfo(selectedAgent).color} text-white`}>
                   <Bot className="w-5 h-5" />
                 </div>
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
+                                 <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl px-4 py-3 border border-gray-200 dark:border-gray-600 shadow-md">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -164,9 +164,9 @@ export function AIChat() {
           )}
           <div ref={messagesEndRef} />
         </div>
-      </CardContent>
+      </div>
       {/* Input */}
-      <div className="px-6 pb-6">
+      <div className="border-t border-gray-200 dark:border-gray-700 p-6">
         <div className="flex gap-2">
           <input
             type="text"
@@ -182,6 +182,6 @@ export function AIChat() {
           </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

@@ -41,42 +41,28 @@ function Dashboard() {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="lg:col-span-2">
-              <HealthMetrics />
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="lg:col-span-2">
+                <HealthMetrics />
+              </div>
+              <MedicationReminders />
+              <HealthInsights />
             </div>
-            <MedicationReminders />
-            <HealthInsights />
           </div>
         );
       case 'chat':
-        return (
-          <div className="max-w-4xl mx-auto">
-            <AIChat />
-          </div>
-        );
+        return <AIChat />;
       case 'symptoms':
-        return (
-          <div className="max-w-4xl mx-auto">
-            <SymptomChecker />
-          </div>
-        );
+        return <SymptomChecker />;
       case 'medications':
-        return (
-          <div className="max-w-4xl mx-auto">
-            <MedicationReminders />
-          </div>
-        );
+        return <MedicationReminders />;
       case 'insights':
-        return (
-          <div className="max-w-4xl mx-auto">
-            <HealthInsights />
-          </div>
-        );
+        return <HealthInsights />;
       case 'reports':
         return (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
+          <div className="h-full bg-white dark:bg-gray-800 flex items-center justify-center">
+            <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Health Reports</h2>
               <p className="text-gray-600 dark:text-gray-300">Detailed health reports and analytics coming soon...</p>
             </div>
@@ -84,12 +70,14 @@ function Dashboard() {
         );
       default:
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="lg:col-span-2">
-              <HealthMetrics />
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="lg:col-span-2">
+                <HealthMetrics />
+              </div>
+              <MedicationReminders />
+              <HealthInsights />
             </div>
-            <MedicationReminders />
-            <HealthInsights />
           </div>
         );
     }
@@ -103,16 +91,7 @@ function Dashboard() {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
-          <div className="mb-4">
-            {loading ? (
-              <span className="text-gray-500 dark:text-gray-400">Checking backend health...</span>
-            ) : error ? (
-              <span className="text-red-500 dark:text-red-400">Backend error: {error}</span>
-            ) : (
-              <span className="text-green-600 dark:text-green-400">Backend health: {healthStatus}</span>
-            )}
-          </div>
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {renderContent()}
         </main>
       </div>

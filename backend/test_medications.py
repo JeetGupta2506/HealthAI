@@ -25,9 +25,10 @@ def test_medications():
         "name": "Test Medication",
         "dosage": "100mg",
         "frequency": "Twice daily",
-        "timeToTake": ["08:00", "20:00"],
         "prescribedBy": "Dr. Test",
         "startDate": datetime.now().isoformat(),
+        "endDate": (datetime.now().replace(day=datetime.now().day + 7)).isoformat(),
+        "totalDoses": 14,
         "instructions": "Take with food"
     }
     

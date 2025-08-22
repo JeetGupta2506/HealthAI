@@ -1,5 +1,5 @@
 import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus, MinusCircle, Edit2, Plus, PlusCircle, Check, Target } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../ui/Card';
+
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
 import { useHealth } from '../../contexts/HealthContext';
@@ -52,18 +52,31 @@ export function HealthMetrics() {
       const wasAchieved = achievedTargets[metric.id];
       const isAchieved = metric.target != null && metric.value >= metric.target;
 
-      // Only celebrate if target is newly achieved (wasn't achieved before)
-      if (isAchieved && !wasAchieved && !showingCelebration.includes(metric.id)) {
-        setShowingCelebration(prev => [...prev, metric.id]);
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-        setTimeout(() => {
-          setShowingCelebration(prev => prev.filter(id => id !== metric.id));
-        }, 3000);
-      }
+             // Only celebrate if target is newly achieved (wasn't achieved before)
+       if (isAchieved && !wasAchieved && !showingCelebration.includes(metric.id)) {
+         setShowingCelebration(prev => [...prev, metric.id]);
+         
+         // Only show confetti for hydration, and position it on the hydration box
+         if (metric.name === 'Hydration') {
+           // Find the hydration metric element to position confetti correctly
+           const hydrationElement = document.querySelector(`[data-metric-id="${metric.id}"]`);
+           if (hydrationElement) {
+             const rect = hydrationElement.getBoundingClientRect();
+             const x = (rect.left + rect.right) / 2 / window.innerWidth;
+             const y = (rect.top + rect.bottom) / 2 / window.innerHeight;
+             
+             confetti({
+               particleCount: 100,
+               spread: 70,
+               origin: { x, y }
+             });
+           }
+         }
+         
+         setTimeout(() => {
+           setShowingCelebration(prev => prev.filter(id => id !== metric.id));
+         }, 3000);
+       }
 
       // Update achievement status
       setAchievedTargets(prev => ({
@@ -95,16 +108,26 @@ export function HealthMetrics() {
   };
 
   return (
-    <Card>
-      <CardHeader title="Health Metrics" subtitle="Real-time health data overview" />
-      <CardContent>
+    <div className="h-full bg-white dark:bg-gray-800">
+      <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Health Metrics</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Real-time health data overview</p>
+      </div>
+      <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {metrics.map((metric) => (
-            <div key={metric.id} className="bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                         <div key={metric.id} data-metric-id={metric.id} className="relative bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-gray-600 dark:text-gray-400">{getIcon(metric.name)}</div>
                 {getTrendIcon(metric.trend)}
               </div>
+              
+              {/* Celebration Animation - Only for Hydration when target achieved */}
+              {metric.name === 'Hydration' && showingCelebration.includes(metric.id) && (
+                <div className="absolute -top-2 -right-2 z-10">
+                  <div className="animate-bounce text-2xl">🎉</div>
+                </div>
+              )}
               <div className="space-y-1">
                 {editingMetric === metric.id ? (
                   <div className="flex items-center space-x-2">
@@ -188,9 +211,6 @@ export function HealthMetrics() {
                       <>
                         <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                           Target: {metric.target} {metric.unit}
-                          {showingCelebration.includes(metric.id) && (
-                            <span className="inline-block animate-bounce">🎉</span>
-                          )}
                         </p>
                         <Button
                           onClick={() => handleEdit(metric.id, metric.target || 0, true)}
@@ -211,7 +231,7 @@ export function HealthMetrics() {
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, AlertCircle, CheckCircle, Clock, ArrowRight } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../ui/Card';
+
 import { Button } from '../ui/Button';
 import { useHealth } from '../../contexts/HealthContext';
 
@@ -11,10 +11,68 @@ interface Symptom {
   bodyPart: string;
 }
 
+// Common symptoms that show as buttons on the page
 const commonSymptoms = [
   'Headache', 'Fever', 'Cough', 'Fatigue', 'Nausea', 'Chest Pain',
   'Shortness of Breath', 'Dizziness', 'Back Pain', 'Sore Throat'
 ];
+
+// Extended symptoms for the dropdown search (not shown as buttons)
+const extendedSymptoms = [
+  // General Symptoms
+  'Weakness', 'Chills', 'Sweating', 'Loss of Appetite', 'Weight Loss', 'Weight Gain', 
+  'Insomnia', 'Excessive Sleepiness', 'Night Sweats', 'Fever with Chills',
+  
+  // Respiratory Symptoms
+  'Runny Nose', 'Congestion', 'Wheezing', 'Difficulty Breathing', 'Chest Tightness', 
+  'Hoarseness', 'Sinus Pain', 'Post-nasal Drip', 'Sneezing', 'Sore Throat',
+  
+  // Cardiovascular Symptoms
+  'Heart Palpitations', 'Irregular Heartbeat', 'High Blood Pressure', 'Low Blood Pressure',
+  'Chest Discomfort', 'Pain Radiating to Arm', 'Swelling in Legs', 'Cold Hands/Feet',
+  'Rapid Heartbeat', 'Slow Heartbeat',
+  
+  // Gastrointestinal Symptoms
+  'Abdominal Pain', 'Stomach Cramps', 'Diarrhea', 'Constipation', 'Bloating', 'Gas',
+  'Acid Reflux', 'Heartburn', 'Vomiting', 'Food Intolerance', 'Indigestion',
+  'Loss of Appetite', 'Increased Appetite', 'Stomach Upset',
+  
+  // Musculoskeletal Symptoms
+  'Neck Pain', 'Joint Pain', 'Muscle Aches', 'Stiffness', 'Swelling',
+  'Limited Range of Motion', 'Muscle Weakness', 'Cramps', 'Tremors', 'Joint Stiffness',
+  'Muscle Spasms', 'Tenderness', 'Bone Pain',
+  
+  // Neurological Symptoms
+  'Memory Problems', 'Confusion', 'Difficulty Concentrating', 'Anxiety', 'Depression',
+  'Mood Changes', 'Irritability', 'Numbness', 'Tingling', 'Vision Problems',
+  'Brain Fog', 'Difficulty Speaking', 'Coordination Problems', 'Balance Issues',
+  
+  // Skin Symptoms
+  'Rash', 'Itching', 'Dry Skin', 'Acne', 'Hives', 'Bruising',
+  'Skin Discoloration', 'Hair Loss', 'Nail Changes', 'Skin Lesions',
+  'Warmth in Skin', 'Skin Tightness', 'Scarring',
+  
+  // Urinary Symptoms
+  'Frequent Urination', 'Painful Urination', 'Blood in Urine', 'Incontinence',
+  'Difficulty Urinating', 'Cloudy Urine', 'Urgency', 'Nocturia',
+  
+  // Reproductive Symptoms
+  'Irregular Periods', 'Heavy Bleeding', 'Painful Periods', 'Breast Pain',
+  'Erectile Dysfunction', 'Low Libido', 'Menstrual Cramps', 'Breast Tenderness',
+  
+  // Eye Symptoms
+  'Blurred Vision', 'Eye Pain', 'Redness', 'Dry Eyes', 'Watery Eyes',
+  'Sensitivity to Light', 'Floaters', 'Double Vision', 'Eye Pressure',
+  'Eye Discharge', 'Eyelid Swelling',
+  
+  // Ear Symptoms
+  'Ear Pain', 'Hearing Loss', 'Ringing in Ears', 'Ear Pressure', 'Ear Discharge',
+  'Ear Fullness', 'Tinnitus', 'Vertigo',
+  
+  // Dental Symptoms
+     'Tooth Pain', 'Gum Pain', 'Mouth Sores', 'Bad Breath', 'Difficulty Chewing',
+   'Jaw Pain', 'Temporomandibular Joint Pain', 'Gum Bleeding', 'Tooth Sensitivity','Blackout'
+ ];
 
 const mockAssessment = {
   riskLevel: 'moderate',
@@ -76,7 +134,7 @@ export function SymptomChecker() {
     }
   };
 
-  const filteredSymptoms = commonSymptoms.filter(symptom =>
+  const filteredSymptoms = [...commonSymptoms, ...extendedSymptoms].filter(symptom =>
     symptom.toLowerCase().includes(searchTerm.toLowerCase()) &&
     !selectedSymptoms.find(s => s.name === symptom)
   );
@@ -109,9 +167,12 @@ export function SymptomChecker() {
 
   if (currentStep === 'assessment') {
     return (
-      <Card>
-        <CardHeader title="Health Assessment Results" subtitle="AI-powered analysis of your symptoms" />
-        <CardContent className="space-y-6">
+      <div className="h-full bg-white dark:bg-gray-800">
+        <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Health Assessment Results</h2>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">AI-powered analysis of your symptoms</p>
+        </div>
+        <div className="p-6 space-y-6">
           {loading && <div className="text-gray-600">Loading assessment...</div>}
           {error && <div className="text-red-600">{error}</div>}
           {assessment && (
@@ -167,19 +228,19 @@ export function SymptomChecker() {
             <Button variant="secondary">
               Book Appointment
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+                  </div>
+      </div>
+    </div>
+  );
+}
 
   return (
-    <Card>
-      <CardHeader 
-        title="AI Symptom Checker" 
-        subtitle="Get AI-powered health assessments based on your symptoms"
-      />
-      <CardContent className="space-y-6">
+    <div className="h-full bg-white dark:bg-gray-800">
+      <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Symptom Checker</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Get AI-powered health assessments based on your symptoms</p>
+      </div>
+      <div className="p-6 space-y-6">
         {/* Step Indicator */}
         <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className={`flex items-center gap-2 ${currentStep === 'symptoms' ? 'text-gray-600 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}`}>
@@ -250,7 +311,7 @@ export function SymptomChecker() {
                   <button
                     key={symptom}
                     onClick={() => addSymptom(symptom)}
-                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-100 rounded-full transition-all duration-200"
+                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-white rounded-full transition-all duration-200 border border-gray-200 dark:border-gray-600 shadow-sm"
                   >
                     {symptom}
                   </button>
@@ -344,7 +405,7 @@ export function SymptomChecker() {
             {error && <div className="text-red-600 dark:text-red-400 mt-2">{error}</div>}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

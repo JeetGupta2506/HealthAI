@@ -27,6 +27,8 @@ def load_medications():
                 for med in data:
                     if 'startDate' in med and isinstance(med['startDate'], str):
                         med['startDate'] = datetime.fromisoformat(med['startDate'])
+                    if 'endDate' in med and isinstance(med['endDate'], str):
+                        med['endDate'] = datetime.fromisoformat(med['endDate'])
                 return data
         return []
     except Exception as e:
@@ -42,6 +44,8 @@ def save_medications(medications):
             med_copy = med.copy()
             if 'startDate' in med_copy and isinstance(med_copy['startDate'], datetime):
                 med_copy['startDate'] = med_copy['startDate'].isoformat()
+            if 'endDate' in med_copy and isinstance(med_copy['endDate'], datetime):
+                med_copy['endDate'] = med_copy['endDate'].isoformat()
             data_to_save.append(med_copy)
         
         with open(MEDICATIONS_FILE, 'w') as f:
@@ -190,18 +194,20 @@ class Medication(BaseModel):
     name: str
     dosage: str
     frequency: str
-    timeToTake: List[str]
     prescribedBy: str
     startDate: datetime
+    endDate: Optional[datetime] = None
+    totalDoses: Optional[int] = None
     instructions: Optional[str] = None
 
 class MedicationCreate(BaseModel):
     name: str
     dosage: str
     frequency: str
-    timeToTake: List[str]
     prescribedBy: str
     startDate: datetime
+    endDate: Optional[datetime] = None
+    totalDoses: Optional[int] = None
     instructions: Optional[str] = None
 
 @app.get("/")
@@ -278,9 +284,12 @@ async def create_medication(medication: MedicationCreate):
     while any(med['id'] == new_id for med in medications):
         new_id = str(int(new_id) + 1)
     
+    # Convert the medication data to dict and handle datetime conversion
+    med_data = medication.dict()
+    
     new_medication = {
         "id": new_id,
-        **medication.dict()
+        **med_data
     }
     
     medications.append(new_medication)

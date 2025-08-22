@@ -13,10 +13,10 @@ export interface Medication {
   name: string;
   dosage: string;
   frequency: string;
-  timeToTake: string[];
   prescribedBy: string;
   startDate: Date;
   endDate?: Date;
+  totalDoses?: number;
   instructions?: string;
 }
 

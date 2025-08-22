@@ -1,6 +1,6 @@
  
 import { Lightbulb, TrendingUp, Shield, Brain } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../ui/Card';
+
 import { HealthInsight } from '../../types/health';
 
 const mockInsights: HealthInsight[] = [
@@ -73,12 +73,12 @@ const getPriorityDot = (priority: string) => {
 
 export function HealthInsights() {
   return (
-    <Card>
-      <CardHeader 
-        title="AI Health Insights" 
-        subtitle="Personalized recommendations from your health data"
-      />
-      <CardContent>
+    <div className="h-full bg-white dark:bg-gray-800">
+      <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Health Insights</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Personalized recommendations from your health data</p>
+      </div>
+      <div className="p-6">
         <div className="space-y-4">
           {mockInsights.map((insight) => (
             <div key={insight.id} className={`p-4 rounded-lg border-2 bg-gradient-to-r ${getPriorityColor(insight.priority)}`}>
@@ -105,7 +105,7 @@ export function HealthInsights() {
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
