@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -19,8 +19,6 @@ from auth import get_password_hash, authenticate_user, create_access_token, get_
 
 load_dotenv()
 
-import re
-
 # Initialize database tables
 create_tables()
 
@@ -32,7 +30,6 @@ def format_response(text: str) -> str:
     - Bolded keywords
     - Separated disclaimers
     """
-    import re
 
     if not text:
         return ""
@@ -69,6 +66,15 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     session_id: str
+
+class SignupRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class SigninRequest(BaseModel):
+    username: str
+    password: str
 
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
@@ -165,7 +171,13 @@ class MedicationCreate(BaseModel):
     timeToTake: List[str]
     prescribedBy: str
     startDate: datetime
+    endDate: Optional[datetime] = None
     instructions: Optional[str] = None
+
+class DoseTakenRequest(BaseModel):
+    medicationId: str
+    date: str  # ISO date string (YYYY-MM-DD)
+    count: int
 
 @app.get("/")
 def read_root():
@@ -176,21 +188,21 @@ def health_check():
     return {"status": "ok"}
 
 @app.post("/api/signup")
-async def signup(username: str, email: str, password: str, db: Session = Depends(get_db)):
+async def signup(request: SignupRequest, db: Session = Depends(get_db)):
     """User signup endpoint"""
     try:
         # Check if user already exists
-        existing_user = db.query(User).filter(User.username == username).first()
+        existing_user = db.query(User).filter(User.username == request.username).first()
         if existing_user:
             raise HTTPException(status_code=400, detail="Username already registered")
         
-        existing_email = db.query(User).filter(User.email == email).first()
+        existing_email = db.query(User).filter(User.email == request.email).first()
         if existing_email:
             raise HTTPException(status_code=400, detail="Email already registered")
         
         # Create new user with hashed password
-        password_hash = get_password_hash(password)
-        new_user = User(username=username, email=email, password_hash=password_hash)
+        password_hash = get_password_hash(request.password)
+        new_user = User(username=request.username, email=request.email, password_hash=password_hash)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
@@ -201,9 +213,9 @@ async def signup(username: str, email: str, password: str, db: Session = Depends
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
 @app.post("/api/signin")
-async def signin(username: str, password: str, db: Session = Depends(get_db)):
+async def signin(request: SigninRequest, db: Session = Depends(get_db)):
     """User signin endpoint"""
-    user = authenticate_user(db, username, password)
+    user = authenticate_user(db, request.username, request.password)
     if not user:
         raise HTTPException(
             status_code=401,
@@ -256,7 +268,7 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     try:
         # Create a new chat session first
         user_id = request.user_id or 1  # Default to user 1 for testing
-        session_id = f"session_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        session_id = f"session_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         
         # Create chat session
         chat_session = ChatSession(
