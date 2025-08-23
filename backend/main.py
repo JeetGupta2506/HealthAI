@@ -5,17 +5,16 @@ from typing import Optional, List
 import os
 import json
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
+# Remove database imports for now
+# from sqlalchemy.orm import Session
+# from database import get_db, create_tables
+# from models import User, ChatSession, ChatMessage, Medication
+# from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
 from dotenv import load_dotenv
-
-# Import database and models
-from database import get_db, create_tables
-from models import User, ChatSession, ChatMessage, Medication
-from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
 
 load_dotenv()
 
@@ -34,6 +33,8 @@ def load_medications():
                 for med in data:
                     if 'startDate' in med and isinstance(med['startDate'], str):
                         med['startDate'] = datetime.fromisoformat(med['startDate'])
+                    if 'endDate' in med and isinstance(med['endDate'], str):
+                        med['endDate'] = datetime.fromisoformat(med['endDate'])
                 return data
         return []
     except Exception as e:
@@ -49,6 +50,8 @@ def save_medications(medications):
             med_copy = med.copy()
             if 'startDate' in med_copy and isinstance(med_copy['startDate'], datetime):
                 med_copy['startDate'] = med_copy['startDate'].isoformat()
+            if 'endDate' in med_copy and isinstance(med_copy['endDate'], datetime):
+                med_copy['endDate'] = med_copy['endDate'].isoformat()
             data_to_save.append(med_copy)
         
         with open(MEDICATIONS_FILE, 'w') as f:
@@ -112,7 +115,25 @@ class SigninRequest(BaseModel):
     username: str
     password: str
 
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+class SymptomAssessmentRequest(BaseModel):
+    symptoms: List[dict]
+
+class SymptomAssessmentResponse(BaseModel):
+    riskLevel: str
+    conditions: List[dict]
+    recommendations: List[str]
+
+llm = None
+
+# Initialize LLM only if API key is available
+try:
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if api_key and api_key != "your_google_api_key_here":
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+    else:
+        print("Warning: Google API key not set. AI features will be limited.")
+except Exception as e:
+    print(f"Warning: Could not initialize LLM: {e}. AI features will be limited.")
 
 # Prompt templates for each agent type
 PROMPT_TEMPLATES = {
@@ -161,6 +182,19 @@ def llm_node(state: dict):
     print("DEBUG llm_node state at entry:", state)
     agent_type = state.get("agent_type", "general")
     message = state.get("message", "")
+    
+    # Check if LLM is available
+    if llm is None:
+        # Provide fallback response when LLM is not available
+        fallback_responses = {
+            "general": "I'm currently in maintenance mode. Please try again later or contact support.",
+            "symptom": "Symptom checking is temporarily unavailable. Please consult a healthcare professional for medical advice.",
+            "nutrition": "Nutrition advice is temporarily unavailable. Please consult a registered dietitian for personalized guidance.",
+            "mental-health": "Mental health support is temporarily unavailable. Please contact a mental health professional or crisis hotline if you need immediate help."
+        }
+        state["response"] = fallback_responses.get(agent_type, fallback_responses["general"])
+        return state
+    
     prompt = get_prompt(agent_type, message)
     print("DEBUG llm_node prompt:", prompt)
     try:
@@ -187,27 +221,15 @@ graph.set_entry_point("llm_node")
 graph.add_edge("llm_node", END)
 chat_workflow = graph.compile()
 
-class SymptomDetail(BaseModel):
-    name: str
-    severity: str
-    bodyPart: str
-
-class SymptomAssessmentRequest(BaseModel):
-    symptoms: List[SymptomDetail]
-
-class SymptomAssessmentResponse(BaseModel):
-    riskLevel: str
-    conditions: list
-    recommendations: list
-
 class Medication(BaseModel):
     id: str
     name: str
     dosage: str
     frequency: str
-    timeToTake: List[str]
     prescribedBy: str
     startDate: datetime
+    endDate: Optional[datetime] = None
+    totalDoses: Optional[int] = None
     instructions: Optional[str] = None
 
 class MedicationCreate(BaseModel):
@@ -216,6 +238,8 @@ class MedicationCreate(BaseModel):
     frequency: str
     prescribedBy: str
     startDate: datetime
+    endDate: Optional[datetime] = None
+    totalDoses: Optional[int] = None
     instructions: Optional[str] = None
 
 class DoseTakenRequest(BaseModel):
@@ -232,81 +256,81 @@ def health_check():
     return {"status": "ok"}
 
 @app.post("/api/signup")
-async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+async def signup(request: SignupRequest):
     """User signup endpoint"""
     try:
         # Check if user already exists
-        existing_user = db.query(User).filter(User.username == request.username).first()
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Username already registered")
+        # existing_user = db.query(User).filter(User.username == request.username).first()
+        # if existing_user:
+        #     raise HTTPException(status_code=400, detail="Username already registered")
         
-        existing_email = db.query(User).filter(User.email == request.email).first()
-        if existing_email:
-            raise HTTPException(status_code=400, detail="Email already registered")
+        # existing_email = db.query(User).filter(User.email == request.email).first()
+        # if existing_email:
+        #     raise HTTPException(status_code=400, detail="Email already registered")
         
-        # Create new user with hashed password
-        password_hash = get_password_hash(request.password)
-        new_user = User(username=request.username, email=request.email, password_hash=password_hash)
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        # # Create new user with hashed password
+        # password_hash = get_password_hash(request.password)
+        # new_user = User(username=request.username, email=request.email, password_hash=password_hash)
+        # db.add(new_user)
+        # db.commit()
+        # db.refresh(new_user)
         
-        return {"success": True, "message": "User created successfully", "user_id": new_user.id}
+        return {"success": True, "message": "User created successfully", "user_id": 1} # Placeholder user_id
     except Exception as e:
-        db.rollback()
+        # db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
 @app.post("/api/signin")
-async def signin(request: SigninRequest, db: Session = Depends(get_db)):
+async def signin(request: SigninRequest):
     """User signin endpoint"""
-    user = authenticate_user(db, request.username, request.password)
-    if not user:
-        raise HTTPException(
-            status_code=401,
-            detail="Incorrect username or password"
-        )
+    # user = authenticate_user(db, request.username, request.password)
+    # if not user:
+    #     raise HTTPException(
+    #         status_code=401,
+    #         detail="Incorrect username or password"
+    #     )
     
-    # Create access token
-    access_token = create_access_token(
-        data={"sub": str(user.id), "username": user.username}
-    )
+    # # Create access token
+    # access_token = create_access_token(
+    #     data={"sub": str(user.id), "username": user.username}
+    # )
     
     return {
-        "access_token": access_token,
+        "access_token": "dummy_token", # Placeholder token
         "token_type": "bearer",
-        "user_id": user.id,
-        "username": user.username
+        "user_id": 1, # Placeholder user_id
+        "username": request.username
     }
 
 @app.post("/api/users")
-async def create_user(username: str, email: str, db: Session = Depends(get_db)):
+async def create_user(username: str, email: str):
     """Create a test user for development (legacy endpoint)"""
     try:
         # Check if user already exists
-        existing_user = db.query(User).filter(User.username == username).first()
-        if existing_user:
-            return {"success": True, "user": existing_user, "message": "User already exists"}
+        # existing_user = db.query(User).filter(User.username == username).first()
+        # if existing_user:
+        #     return {"success": True, "user": existing_user, "message": "User already exists"}
         
-        # Create new user with default password
-        password_hash = get_password_hash("password123")  # Default password
-        new_user = User(username=username, email=email, password_hash=password_hash)
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        # # Create new user with default password
+        # password_hash = get_password_hash("password123")  # Default password
+        # new_user = User(username=username, email=email, password_hash=password_hash)
+        # db.add(new_user)
+        # db.commit()
+        # db.refresh(new_user)
         
-        return {"success": True, "user": new_user, "message": "User created successfully"}
+        return {"success": True, "user": {"id": 1, "username": username, "email": email}, "message": "User created successfully"}
     except Exception as e:
-        db.rollback()
+        # db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
 @app.get("/api/users")
-async def get_users(db: Session = Depends(get_db)):
+async def get_users():
     """Get all users for testing"""
-    users = db.query(User).all()
-    return {"users": users}
+    # users = db.query(User).all()
+    return {"users": []} # Placeholder users
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
+async def chat_endpoint(request: ChatRequest):
     print("DEBUG /chat received:", request)
     
     try:
@@ -315,22 +339,22 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
         session_id = f"session_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         
         # Create chat session
-        chat_session = ChatSession(
-            user_id=user_id,
-            session_id=session_id,
-            agent_type=request.agent_type
-        )
-        db.add(chat_session)
-        db.flush()  # Get the ID without committing yet
+        # chat_session = ChatSession(
+        #     user_id=user_id,
+        #     session_id=session_id,
+        #     agent_type=request.agent_type
+        # )
+        # db.add(chat_session)
+        # db.flush()  # Get the ID without committing yet
         
         # Store user message
-        user_message = ChatMessage(
-            session_id=chat_session.id,  # Use the actual session ID
-            message_type="user",
-            content=request.message,
-            message_metadata={"agent_type": request.agent_type}
-        )
-        db.add(user_message)
+        # user_message = ChatMessage(
+        #     session_id=chat_session.id,  # Use the actual session ID
+        #     message_type="user",
+        #     content=request.message,
+        #     message_metadata={"agent_type": request.agent_type}
+        # )
+        # db.add(user_message)
         
         # Generate AI response
         state = {"agent_type": request.agent_type, "message": request.message}
@@ -343,32 +367,44 @@ async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
                 response_text = format_response(raw_response)
             
             # Store AI response
-            ai_message = ChatMessage(
-                session_id=chat_session.id,  # Use the actual session ID
-                message_type="assistant",
-                content=response_text,
-                message_metadata={"agent_type": request.agent_type}
-            )
-            db.add(ai_message)
+            # ai_message = ChatMessage(
+            #     session_id=chat_session.id,  # Use the actual session ID
+            #     message_type="assistant",
+            #     content=response_text,
+            #     message_metadata={"agent_type": request.agent_type}
+            # )
+            # db.add(ai_message)
             
             # Commit everything to database
-            db.commit()
+            # db.commit()
             
-            print(f"DEBUG: Chat session {chat_session.id} created, messages stored")
+            print(f"DEBUG: Chat session {session_id} created, messages stored")
             return ChatResponse(response=response_text, session_id=session_id)
 
         except Exception as e:
-            db.rollback()
+            # db.rollback()
             print("ERROR in AI response generation:", e)
             raise HTTPException(status_code=500, detail=f"AI response error: {str(e)}")
 
     except Exception as e:
-        db.rollback()
+        # db.rollback()
         print("ERROR in /chat:", e)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/api/assess-symptoms", response_model=SymptomAssessmentResponse)
 async def assess_symptoms(request: SymptomAssessmentRequest):
+    # Check if LLM is available
+    if llm is None:
+        return {
+            "riskLevel": "unknown",
+            "conditions": [{"name": "Service Unavailable", "probability": 0, "urgent": False}],
+            "recommendations": [
+                "AI symptom assessment is temporarily unavailable.",
+                "Please consult a healthcare professional for medical advice.",
+                "If you have urgent symptoms, seek immediate medical attention."
+            ]
+        }
+    
     symptoms_text = "\n".join(
         [f"- {s.name} (Severity: {s.severity}, Body Part: {s.bodyPart})" for s in request.symptoms]
     )
@@ -400,17 +436,14 @@ async def assess_symptoms(request: SymptomAssessmentRequest):
         }
 
 @app.get("/api/medications")
-async def get_medications(user_id: Optional[int] = None, db: Session = Depends(get_db)):
+async def get_medications(user_id: Optional[int] = None):
     """Get all medications for a user"""
-    if user_id is None:
-        # For testing purposes, return all medications
-        medications = db.query(Medication).all()
-    else:
-        medications = db.query(Medication).filter(Medication.user_id == user_id).all()
+    # For now, return medications from JSON file
+    medications = load_medications()
     return {"medications": medications}
 
 @app.post("/api/medications")
-async def create_medication(medication: MedicationCreate, user_id: Optional[int] = 1, db: Session = Depends(get_db)):
+async def create_medication(medication: MedicationCreate, user_id: Optional[int] = 1):
     """Create a new medication"""
     medications = load_medications()
     
@@ -419,9 +452,12 @@ async def create_medication(medication: MedicationCreate, user_id: Optional[int]
     while any(med['id'] == new_id for med in medications):
         new_id = str(int(new_id) + 1)
     
+    # Convert the medication data to dict and handle datetime conversion
+    med_data = medication.dict()
+    
     new_medication = {
         "id": new_id,
-        **medication.dict()
+        **med_data
     }
     
     medications.append(new_medication)
@@ -432,30 +468,31 @@ async def create_medication(medication: MedicationCreate, user_id: Optional[int]
         return {"success": False, "error": "Failed to save medication"}
 
 @app.delete("/api/medications/{medication_id}")
-async def delete_medication(medication_id: int, user_id: Optional[int] = 1, db: Session = Depends(get_db)):
+async def delete_medication(medication_id: str, user_id: Optional[int] = 1):
     """Delete a medication"""
-    medication = db.query(Medication).filter(
-        Medication.id == medication_id,
-        Medication.user_id == user_id
-    ).first()
+    medications = load_medications()
     
-    if not medication:
-        raise HTTPException(status_code=404, detail="Medication not found")
+    # Find and remove the medication
+    medications = [med for med in medications if med['id'] != medication_id]
     
-    db.delete(medication)
-    db.commit()
-    
-    return {"success": True, "message": "Medication deleted successfully"}
+    if save_medications(medications):
+        return {"success": True, "message": "Medication deleted successfully"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to delete medication")
 
 # Add new endpoints for chat history
 @app.get("/api/chat-history/{user_id}")
-async def get_chat_history(user_id: int, db: Session = Depends(get_db)):
+async def get_chat_history(user_id: int):
     """Get chat history for a user"""
-    sessions = db.query(ChatSession).filter(ChatSession.user_id == user_id).all()
-    return {"sessions": sessions}
+    # sessions = db.query(ChatSession).filter(ChatSession.user_id == user_id).all()
+    return {"sessions": []} # Placeholder sessions
 
 @app.get("/api/chat-messages/{session_id}")
-async def get_chat_messages(session_id: int, db: Session = Depends(get_db)):
+async def get_chat_messages(session_id: int):
     """Get messages for a specific chat session"""
-    messages = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
-    return {"messages": messages}
+    # messages = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
+    return {"messages": []} # Placeholder messages
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

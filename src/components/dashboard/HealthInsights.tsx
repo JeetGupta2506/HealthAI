@@ -72,6 +72,8 @@ const getPriorityDot = (priority: string) => {
 };
 
 export function HealthInsights() {
+  console.log('HealthInsights component rendering');
+  
   return (
     <div className="h-full bg-white dark:bg-gray-800">
       <div className="border-b border-gray-200 dark:border-gray-700 p-6">
@@ -80,30 +82,26 @@ export function HealthInsights() {
       </div>
       <div className="p-6">
         <div className="space-y-4">
-          {mockInsights.map((insight) => (
-            <div key={insight.id} className={`p-4 rounded-lg border-2 bg-gradient-to-r ${getPriorityColor(insight.priority)}`}>
-              <div className="flex items-start gap-3">
-                <div className="text-gray-600 dark:text-gray-400">
-                  {getCategoryIcon(insight.category)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-semibold text-gray-800 dark:text-gray-100">{insight.title}</h4>
-                    <div className={`w-2 h-2 rounded-full ${getPriorityDot(insight.priority)}`}></div>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-3">{insight.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{insight.category}</span>
-                    {insight.actionable && (
-                      <button className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium">
-                        Take Action →
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+            <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 Wellness Tip</h3>
+            <p className="text-blue-700 dark:text-blue-300 text-sm">
+              Based on your current metrics, try to maintain consistent sleep patterns and stay hydrated throughout the day.
+            </p>
+          </div>
+          
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800">
+            <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">🎯 Goal Setting</h3>
+            <p className="text-green-700 dark:text-green-300 text-sm">
+              Set realistic health goals and track your progress. Small, consistent changes lead to lasting improvements.
+            </p>
+          </div>
+          
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-800">
+            <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">⚠️ Attention</h3>
+            <p className="text-amber-700 dark:text-amber-300 text-sm">
+              Remember to consult healthcare professionals for medical advice. This app is for informational purposes only.
+            </p>
+          </div>
         </div>
       </div>
     </div>
