@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { SimpleThemeToggle } from '../ui/ThemeToggle';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SignInForm {
   email: string;
@@ -19,6 +20,7 @@ interface SignInForm {
 
 export function SignInPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<SignInForm>({
     email: '',
     password: ''
@@ -38,7 +40,13 @@ export function SignInPage() {
       
       // Simple validation - in real app, this would be an API call
       if (formData.email === 'demo@healthai.com' && formData.password === 'password123') {
-        // Success - navigate to dashboard
+        // Success - login user and navigate to dashboard
+        const userData = {
+          id: 1,
+          email: formData.email,
+          username: 'demo_user'
+        };
+        login(userData);
         navigate('/dashboard');
       } else {
         // Show error

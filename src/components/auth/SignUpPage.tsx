@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { SimpleThemeToggle } from '../ui/ThemeToggle';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SignUpForm {
   email: string;
@@ -23,6 +24,7 @@ interface SignUpForm {
 
 export function SignUpPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<SignUpForm>({
     email: '',
     password: '',
@@ -43,8 +45,14 @@ export function SignUpPage() {
       // Handle sign up logic here
       console.log('Sign up:', formData);
       
-      // If all details are valid, navigate to dashboard
+      // If all details are valid, login user and navigate to dashboard
       if (isFormValid) {
+        const userData = {
+          id: 1,
+          email: formData.email,
+          username: formData.fullName
+        };
+        login(userData);
         navigate('/dashboard');
       }
     }, 2000);

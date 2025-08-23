@@ -55,21 +55,37 @@ const initialMetrics: HealthMetric[] = [
 const STORAGE_KEY = 'healthMetrics';
 
 export function HealthProvider({ children }: { children: React.ReactNode }) {
+  console.log('HealthProvider - initializing');
+  
   const [metrics, setMetrics] = useState<HealthMetric[]>(() => {
+    console.log('HealthProvider - initializing metrics state');
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      // Convert stored date strings back to Date objects
-      return parsed.map((metric: any) => ({
-        ...metric,
-        lastUpdated: new Date(metric.lastUpdated)
-      }));
+      try {
+        const parsed = JSON.parse(saved);
+        console.log('HealthProvider - loaded metrics from localStorage:', parsed);
+        // Convert stored date strings back to Date objects
+        const converted = parsed.map((metric: any) => ({
+          ...metric,
+          lastUpdated: new Date(metric.lastUpdated)
+        }));
+        console.log('HealthProvider - converted metrics:', converted);
+        return converted;
+      } catch (error) {
+        console.error('HealthProvider - error parsing localStorage metrics:', error);
+        console.log('HealthProvider - using initial metrics due to parse error');
+        return initialMetrics;
+      }
     }
+    console.log('HealthProvider - no saved metrics, using initial:', initialMetrics);
     return initialMetrics;
   });
 
+  console.log('HealthProvider - current metrics state:', metrics);
+
   // Reset daily metrics at midnight
   useEffect(() => {
+    console.log('HealthProvider - setting up daily reset timer');
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -77,6 +93,7 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
     const timeUntilMidnight = tomorrow.getTime() - now.getTime();
 
     const resetDailyMetrics = () => {
+      console.log('HealthProvider - resetting daily metrics');
       setMetrics(prevMetrics => prevMetrics.map(metric => {
         if (metric.name === 'Symptom Checks' || metric.name === 'Hydration') {
           return { ...metric, value: 0, lastUpdated: new Date() };
@@ -91,10 +108,12 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
 
   // Save metrics to localStorage whenever they change
   useEffect(() => {
+    console.log('HealthProvider - saving metrics to localStorage:', metrics);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(metrics));
   }, [metrics]);
 
   const updateMetric = (id: string, value: number) => {
+    console.log('HealthProvider - updateMetric called:', { id, value });
     setMetrics(prevMetrics =>
       prevMetrics.map(metric =>
         metric.id === id
@@ -110,6 +129,7 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateTarget = (id: string, target: number) => {
+    console.log('HealthProvider - updateTarget called:', { id, target });
     setMetrics(prevMetrics =>
       prevMetrics.map(metric =>
         metric.id === id
@@ -123,6 +143,7 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const incrementSymptomChecks = () => {
+    console.log('HealthProvider - incrementSymptomChecks called');
     setMetrics(prevMetrics =>
       prevMetrics.map(metric =>
         metric.name === 'Symptom Checks'
@@ -133,6 +154,7 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const incrementHydration = () => {
+    console.log('HealthProvider - incrementHydration called');
     setMetrics(prevMetrics =>
       prevMetrics.map(metric =>
         metric.name === 'Hydration'
@@ -143,6 +165,7 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const decrementHydration = () => {
+    console.log('HealthProvider - decrementHydration called');
     setMetrics(prevMetrics =>
       prevMetrics.map(metric =>
         metric.name === 'Hydration' && metric.value > 0
@@ -153,6 +176,7 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateSleepQuality = (value: number) => {
+    console.log('HealthProvider - updateSleepQuality called:', { value });
     setMetrics(prevMetrics =>
       prevMetrics.map(metric =>
         metric.name === 'Sleep Quality'
@@ -167,18 +191,20 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const contextValue = {
+    metrics,
+    updateMetric,
+    updateTarget,
+    incrementSymptomChecks,
+    incrementHydration,
+    decrementHydration,
+    updateSleepQuality
+  };
+
+  console.log('HealthProvider - providing context value:', contextValue);
+
   return (
-    <HealthContext.Provider
-      value={{
-        metrics,
-        updateMetric,
-        updateTarget,
-        incrementSymptomChecks,
-        incrementHydration,
-        decrementHydration,
-        updateSleepQuality
-      }}
-    >
+    <HealthContext.Provider value={contextValue}>
       {children}
     </HealthContext.Provider>
   );
