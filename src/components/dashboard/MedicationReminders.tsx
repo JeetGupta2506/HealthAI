@@ -237,7 +237,7 @@ export function MedicationReminders() {
         <div className="p-4">
           {/* Medication Summary */}
           {medications.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg border border-blue-100 dark:border-blue-800 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg border border-blue-100 dark:border-blue-800 mb-4">
               <div className="text-center">
                 <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {activeMedications.length}
@@ -249,12 +249,6 @@ export function MedicationReminders() {
                   {completedMedications.length}
                 </div>
                 <div className="text-xs text-green-600 dark:text-green-400">Completed Courses</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-amber-600 dark:text-amber-400">
-                  {activeMedications.filter(med => getRemainingDoses(med) <= 3).length}
-                </div>
-                <div className="text-xs text-amber-600 dark:text-amber-400">Running Low</div>
               </div>
             </div>
           )}
@@ -343,41 +337,42 @@ export function MedicationReminders() {
                               </div>
                             )}
                           </div>
+                        </div>
+                        
+                        {/* Buttons moved to center below the content */}
+                        <div className="flex justify-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                          {/* Dose Tracking Buttons */}
+                          {medication.totalDoses && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => markDoseTaken(medication.id)}
+                                disabled={remainingDoses === 0}
+                                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold text-xs px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md flex items-center gap-2 min-w-[100px] justify-center"
+                              >
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                <span>Mark Taken</span>
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => markDoseUntaken(medication.id)}
+                                disabled={(dosesTaken[medication.id] || 0) === 0}
+                                className="bg-gradient-to-r from-slate-500 to-gray-600 hover:from-slate-600 hover:to-gray-700 text-white font-semibold text-xs px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md flex items-center gap-2 min-w-[100px] justify-center"
+                              >
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                                <span>Revert Dose</span>
+                              </Button>
+                            </>
+                          )}
                           
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            {/* Dose Tracking Buttons */}
-                            {medication.totalDoses && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => markDoseTaken(medication.id)}
-                                  disabled={remainingDoses === 0}
-                                  className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20 font-medium text-xs px-2 py-1"
-                                >
-                                  ✅ Take Dose
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => markDoseUntaken(medication.id)}
-                                  disabled={(dosesTaken[medication.id] || 0) === 0}
-                                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20 font-medium text-xs px-2 py-1"
-                                >
-                                  ↩️ Undo Dose
-                                </Button>
-                              </>
-                            )}
-                            
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => deleteMedication(medication.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 px-2 py-1"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteMedication(medication.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 px-2 py-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     );

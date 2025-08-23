@@ -103,34 +103,34 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200">
+      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-100 via-indigo-50 to-emerald-100 dark:from-blue-900 dark:via-indigo-900 dark:to-emerald-900 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded-full text-sm font-medium transition-colors duration-200">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200 rounded-full text-sm font-medium transition-colors duration-200 shadow-md">
                   <Zap className="w-4 h-4" />
                   Powered by Advanced AI
                 </div>
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
                   Your AI-Powered
-                  <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent"> Health Companion</span>
+                  <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent"> Health Companion</span>
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="text-xl text-gray-700 dark:text-gray-200 leading-relaxed">
                   Experience the future of healthcare with our multi-agent AI system. Get personalized health insights, 
                   symptom analysis, and 24/7 medical guidance powered by cutting-edge technology.
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="group" onClick={() => navigate('/signup')}>
+                <Button size="lg" className="group bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300" onClick={() => navigate('/signup')}>
                   Start Your Health Journey
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="group"
+                  className="group border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900/20 shadow-md hover:shadow-lg transition-all duration-300"
                   onClick={() => navigate('/signup')}
                 >
                   <Play className="w-5 h-5 mr-2" />
@@ -140,10 +140,10 @@ export function LandingPage() {
             </div>
             
             <div className="relative">
-              <div className="relative z-10 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+              <div className="relative z-10 bg-white/90 backdrop-blur-sm dark:bg-gray-800/90 rounded-2xl shadow-2xl p-8 border border-blue-100 dark:border-blue-800 transition-colors duration-200">
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
                       <Brain className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -153,21 +153,21 @@ export function LandingPage() {
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <span className="text-sm font-medium text-green-800 dark:text-green-300">Heart Rate</span>
-                      <span className="text-sm text-green-600 dark:text-green-400">72 bpm ↗️</span>
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 rounded-lg border border-emerald-200">
+                      <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Heart Rate</span>
+                      <span className="text-sm text-emerald-600 dark:text-emerald-400">72 bpm ↗️</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-300">Sleep Quality</span>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">85% ↗️</span>
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200">
+                      <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Sleep Quality</span>
+                      <span className="text-sm text-blue-600 dark:text-blue-400">85% ↗️</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200">
                       <span className="text-sm font-medium text-purple-800 dark:text-purple-300">Stress Level</span>
                       <span className="text-sm text-purple-600 dark:text-purple-400">Low ↘️</span>
                     </div>
                   </div>
                   
-                  <div className="p-4 bg-gradient-to-r from-gray-50 to-green-50 dark:from-gray-800 dark:to-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       <strong>AI Insight:</strong> Your sleep pattern has improved by 15% this week. 
                       Consider maintaining your current bedtime routine.
@@ -177,8 +177,8 @@ export function LandingPage() {
               </div>
               
               {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-green-400 to-gray-500 rounded-full opacity-20 animate-pulse"></div>
-              <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full opacity-20 animate-pulse delay-1000"></div>
+              <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-full opacity-30 animate-pulse shadow-lg"></div>
+              <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full opacity-30 animate-pulse delay-1000 shadow-lg"></div>
             </div>
           </div>
         </div>
