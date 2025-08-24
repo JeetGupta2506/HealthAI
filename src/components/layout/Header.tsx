@@ -1,11 +1,26 @@
 import { useState } from 'react';
-import { User, Settings } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { SettingsModal } from './SettingsModal';
 
+interface ProfileData {
+  name: string;
+  email: string;
+  dateOfBirth: string;
+}
+
 export function Header() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [profileData, setProfileData] = useState<ProfileData>({
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    dateOfBirth: '1990-01-01'
+  });
+
+  const handleProfileUpdate = (updatedProfile: ProfileData) => {
+    setProfileData(updatedProfile);
+  };
 
   return (
     <>
@@ -21,21 +36,17 @@ export function Header() {
             {/* Theme Toggle */}
             <ThemeToggle />
             
-            {/* Settings */}
-            <button 
+            {/* User Profile with Settings */}
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2"
               onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-300"
             >
-              <Settings className="w-5 h-5" />
-            </button>
-            
-            {/* User Profile */}
-            <Button variant="ghost" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
               <span className="hidden md:inline text-gray-700 dark:text-gray-200">
-                John Doe
+                {profileData.name}
               </span>
             </Button>
           </div>
@@ -45,7 +56,9 @@ export function Header() {
       {/* Settings Modal */}
       <SettingsModal 
         isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+        onClose={() => setIsSettingsOpen(false)}
+        profileData={profileData}
+        onProfileUpdate={handleProfileUpdate}
       />
     </>
   );
