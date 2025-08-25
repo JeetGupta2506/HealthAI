@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Pill, Plus, Check, AlertCircle, X, Trash2, Clock } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 import { Button } from '../ui/Button';
 import { Medication } from '../../types/health';
@@ -15,7 +16,11 @@ interface AddMedicationForm {
   instructions: string;
 }
 
-export function MedicationReminders() {
+interface MedicationRemindersProps {
+  showAddButton?: boolean;
+}
+
+export function MedicationReminders({ showAddButton = true }: MedicationRemindersProps) {
   console.log('MedicationReminders component rendering');
   
   const [medications, setMedications] = useState<Medication[]>([]);
@@ -164,12 +169,33 @@ export function MedicationReminders() {
         ...prev,
         [medicationId]: (prev[medicationId] || 0) + 1
       };
+      
+      // Check if course is completed
+      const medication = medications.find(m => m.id === medicationId);
+      if (medication && medication.totalDoses) {
+        const remainingDoses = Math.max(0, medication.totalDoses - newDoses[medicationId]);
+        if (remainingDoses === 0) {
+          // Course completed! Show confetti celebration
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { x: 0.5, y: 0.5 },
+            startVelocity: 45,
+            gravity: 0.8,
+            ticks: 120,
+            colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
+            shapes: ['circle', 'square'],
+            scalar: 2.5
+          });
+        }
+      }
+      
       // Immediately save to localStorage
       localStorage.setItem('medicationDosesTaken', JSON.stringify(newDoses));
       console.log('Dose taken, new state:', newDoses);
       return newDoses;
     });
-  }, []);
+  }, [medications]);
 
   // Mark dose as untaken (undo)
   const markDoseUntaken = useCallback((medicationId: string) => {
@@ -221,20 +247,22 @@ export function MedicationReminders() {
   return (
     <>
       <div className="h-full bg-white dark:bg-gray-800">
-        <div className="border-b border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Medication Reminders</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Stay on track with your prescriptions</p>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add
-            </Button>
-          </div>
-        </div>
+                 <div className="border-b border-gray-200 dark:border-gray-700 px-8 py-4">
+           <div className="flex items-center justify-between">
+             <div>
+               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Medication Reminders</h2>
+               <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Stay on track with your prescriptions</p>
+             </div>
+             {showAddButton && (
+               <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)}>
+                 <Plus className="w-4 h-4 mr-2" />
+                 Add
+               </Button>
+             )}
+           </div>
+         </div>
         
-        <div className="p-4">
+        <div className="px-8 py-4">
           {/* Medication Summary */}
           {medications.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg border border-blue-100 dark:border-blue-800 mb-4">
@@ -271,7 +299,7 @@ export function MedicationReminders() {
                     const remainingDoses = getRemainingDoses(medication);
                     
                     return (
-                      <div key={medication.id} className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                                             <div key={medication.id} className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 rounded-xl border border-blue-200 dark:border-gray-600 transition-colors duration-200">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
                             <Pill className="w-5 h-5" />
@@ -319,11 +347,6 @@ export function MedicationReminders() {
                                     <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full font-medium">
                                       <Check className="w-3 h-3" />
                                       Course Complete! 🎉
-                                    </div>
-                                  ) : remainingDoses <= 3 ? (
-                                    <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full font-medium">
-                                      <AlertCircle className="w-3 h-3" />
-                                      Running Low - {remainingDoses} doses left
                                     </div>
                                   ) : null}
                                 </div>
@@ -397,7 +420,7 @@ export function MedicationReminders() {
                   {showCompleted && (
                     <div className="space-y-2">
                       {completedMedications.map((medication) => (
-                        <div key={medication.id} className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-100 dark:border-green-800 transition-colors duration-200">
+                                                 <div key={medication.id} className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl border border-green-200 dark:border-green-700 transition-colors duration-200">
                           <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0">
                             <Check className="w-5 h-5" />
                           </div>

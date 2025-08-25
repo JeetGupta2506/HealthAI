@@ -1,410 +1,509 @@
-import React, { useState } from 'react';
-import { Search, AlertCircle, CheckCircle, Clock, ArrowRight } from 'lucide-react';
-
+import { useState } from 'react';
+import { Search, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { useHealth } from '../../contexts/HealthContext';
 
-interface Symptom {
-  id: string;
+
+
+interface SelectedSymptom {
   name: string;
-  severity: 'mild' | 'moderate' | 'severe';
-  bodyPart: string;
+  severity?: 'mild' | 'moderate' | 'severe';
+  bodyPart?: string;
+  inputType: 'severity' | 'bodyPart';
 }
 
-// Common symptoms that show as buttons on the page
 const commonSymptoms = [
-  'Headache', 'Fever', 'Cough', 'Fatigue', 'Nausea', 'Chest Pain',
-  'Shortness of Breath', 'Dizziness', 'Back Pain', 'Sore Throat'
+  'Headache', 'Fever', 'Cough', 'Fatigue', 'Nausea', 'Dizziness', 'Joint Pain', 'Chest Pain'
 ];
 
-// Extended symptoms for the dropdown search (not shown as buttons)
 const extendedSymptoms = [
-  // General Symptoms
-  'Weakness', 'Chills', 'Sweating', 'Loss of Appetite', 'Weight Loss', 'Weight Gain', 
-  'Insomnia', 'Excessive Sleepiness', 'Night Sweats', 'Fever with Chills',
-  
-  // Respiratory Symptoms
-  'Runny Nose', 'Congestion', 'Wheezing', 'Difficulty Breathing', 'Chest Tightness', 
-  'Hoarseness', 'Sinus Pain', 'Post-nasal Drip', 'Sneezing', 'Sore Throat',
-  
-  // Cardiovascular Symptoms
-  'Heart Palpitations', 'Irregular Heartbeat', 'High Blood Pressure', 'Low Blood Pressure',
-  'Chest Discomfort', 'Pain Radiating to Arm', 'Swelling in Legs', 'Cold Hands/Feet',
-  'Rapid Heartbeat', 'Slow Heartbeat',
-  
-  // Gastrointestinal Symptoms
-  'Abdominal Pain', 'Stomach Cramps', 'Diarrhea', 'Constipation', 'Bloating', 'Gas',
-  'Acid Reflux', 'Heartburn', 'Vomiting', 'Food Intolerance', 'Indigestion',
-  'Loss of Appetite', 'Increased Appetite', 'Stomach Upset',
-  
-  // Musculoskeletal Symptoms
-  'Neck Pain', 'Joint Pain', 'Muscle Aches', 'Stiffness', 'Swelling',
-  'Limited Range of Motion', 'Muscle Weakness', 'Cramps', 'Tremors', 'Joint Stiffness',
-  'Muscle Spasms', 'Tenderness', 'Bone Pain',
-  
-  // Neurological Symptoms
-  'Memory Problems', 'Confusion', 'Difficulty Concentrating', 'Anxiety', 'Depression',
-  'Mood Changes', 'Irritability', 'Numbness', 'Tingling', 'Vision Problems',
-  'Brain Fog', 'Difficulty Speaking', 'Coordination Problems', 'Balance Issues',
-  
-  // Skin Symptoms
-  'Rash', 'Itching', 'Dry Skin', 'Acne', 'Hives', 'Bruising',
-  'Skin Discoloration', 'Hair Loss', 'Nail Changes', 'Skin Lesions',
-  'Warmth in Skin', 'Skin Tightness', 'Scarring',
-  
-  // Urinary Symptoms
-  'Frequent Urination', 'Painful Urination', 'Blood in Urine', 'Incontinence',
-  'Difficulty Urinating', 'Cloudy Urine', 'Urgency', 'Nocturia',
-  
-  // Reproductive Symptoms
-  'Irregular Periods', 'Heavy Bleeding', 'Painful Periods', 'Breast Pain',
-  'Erectile Dysfunction', 'Low Libido', 'Menstrual Cramps', 'Breast Tenderness',
-  
-  // Eye Symptoms
-  'Blurred Vision', 'Eye Pain', 'Redness', 'Dry Eyes', 'Watery Eyes',
-  'Sensitivity to Light', 'Floaters', 'Double Vision', 'Eye Pressure',
-  'Eye Discharge', 'Eyelid Swelling',
-  
-  // Ear Symptoms
-  'Ear Pain', 'Hearing Loss', 'Ringing in Ears', 'Ear Pressure', 'Ear Discharge',
-  'Ear Fullness', 'Tinnitus', 'Vertigo',
-  
-  // Dental Symptoms
-     'Tooth Pain', 'Gum Pain', 'Mouth Sores', 'Bad Breath', 'Difficulty Chewing',
-   'Jaw Pain', 'Temporomandibular Joint Pain', 'Gum Bleeding', 'Tooth Sensitivity','Blackout'
- ];
+  'Abdominal Pain', 'Back Pain', 'Shortness of Breath', 'Rash', 'Swelling', 'Numbness', 'Tremors', 'Memory Loss',
+  'Vision Problems', 'Hearing Loss', 'Difficulty Swallowing', 'Constipation', 'Diarrhea', 'Vomiting', 'Loss of Appetite',
+  'Weight Loss', 'Weight Gain', 'Night Sweats', 'Insomnia', 'Anxiety', 'Depression', 'Mood Changes', 'Confusion',
+  'Seizures', 'Paralysis', 'Bleeding', 'Bruising', 'Pale Skin', 'Yellow Skin', 'Dark Urine', 'Blood in Stool',
+  'Difficulty Urinating', 'Frequent Urination', 'Painful Urination', 'Irregular Heartbeat', 'High Blood Pressure',
+  'Low Blood Pressure', 'Diabetes Symptoms', 'Thyroid Problems', 'Allergic Reactions', 'Hives', 'Itching',
+  'Hair Loss', 'Nail Changes', 'Mouth Sores', 'Tooth Pain', 'Ear Pain', 'Sinus Pain', 'Sore Throat',
+  'Runny Nose', 'Congestion', 'Sneezing', 'Watery Eyes', 'Dry Eyes', 'Blurred Vision', 'Double Vision',
+  'Light Sensitivity', 'Eye Pain', 'Eye Redness', 'Eye Discharge', 'Ear Discharge', 'Tinnitus', 'Vertigo',
+  'Balance Problems', 'Coordination Issues', 'Muscle Weakness', 'Muscle Spasms', 'Stiffness', 'Tingling',
+  'Burning Sensation', 'Cold Sensitivity', 'Heat Sensitivity', 'Sweating', 'Chills', 'Hot Flashes',
+  'Menstrual Problems', 'Breast Changes', 'Testicular Pain', 'Erectile Dysfunction', 'Libido Changes',
+  'Pregnancy Symptoms', 'Menopause Symptoms', 'Hormonal Changes', 'Acne', 'Eczema', 'Psoriasis',
+  'Warts', 'Moles', 'Skin Tags', 'Age Spots', 'Wrinkles', 'Dry Skin', 'Oily Skin', 'Sensitive Skin'
+];
 
-const mockAssessment = {
-  riskLevel: 'moderate',
-  conditions: [
-    { name: 'Common Cold', probability: 75, urgent: false },
-    { name: 'Viral Infection', probability: 60, urgent: false },
-    { name: 'Stress-related symptoms', probability: 45, urgent: false }
-  ],
-  recommendations: [
-    'Monitor symptoms for 24-48 hours',
-    'Stay hydrated and get adequate rest',
-    'Consider telehealth consultation if symptoms worsen',
-    'Seek immediate care if you experience severe chest pain or difficulty breathing'
-  ]
+// Helper function to determine if symptom needs body part input vs severity
+const getSymptomInputType = (symptom: string): 'severity' | 'bodyPart' => {
+  const bodyPartSymptoms = [
+    'Pain', 'Ache', 'Swelling', 'Numbness', 'Tingling', 'Burning Sensation', 
+    'Stiffness', 'Weakness', 'Spasms', 'Tremors', 'Rash', 'Itching',
+    'Bruising', 'Bleeding', 'Discharge', 'Sensitivity', 'Cramps',
+    'Joint Pain', 'Muscle Pain', 'Back Pain', 'Abdominal Pain', 'Chest Pain'
+  ];
+  
+  // Check if symptom contains any body part related keywords
+  const needsBodyPart = bodyPartSymptoms.some(keyword => 
+    symptom.toLowerCase().includes(keyword.toLowerCase())
+  );
+  
+  return needsBodyPart ? 'bodyPart' : 'severity';
 };
 
-export function SymptomChecker() {
-  const [selectedSymptoms, setSelectedSymptoms] = useState<Symptom[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentStep, setCurrentStep] = useState<'symptoms' | 'details' | 'assessment'>('symptoms');
-  const [assessment, setAssessment] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Body part options for different types of symptoms
+const bodyPartOptions = [
+  'Head', 'Neck', 'Chest', 'Back', 'Abdomen', 'Arms', 'Hands', 'Legs', 'Feet',
+  'Shoulders', 'Joints', 'Muscles', 'Skin', 'Eyes', 'Ears', 'Throat', 'General'
+];
 
-  const addSymptom = (symptomName: string) => {
-    const newSymptom: Symptom = {
-      id: Date.now().toString(),
-      name: symptomName,
-      severity: 'mild',
-      bodyPart: 'general'
+export function SymptomChecker() {
+  const [selectedSymptoms, setSelectedSymptoms] = useState<SelectedSymptom[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleSymptomToggle = (symptom: string) => {
+    setSelectedSymptoms(prev => {
+      const existingIndex = prev.findIndex(s => s.name === symptom);
+      if (existingIndex >= 0) {
+        // Remove symptom if it already exists
+        return prev.filter(s => s.name !== symptom);
+      } else {
+        // Add symptom with appropriate input type and default values
+        const inputType = getSymptomInputType(symptom);
+        const newSymptom: SelectedSymptom = {
+          name: symptom,
+          inputType,
+          ...(inputType === 'severity' 
+            ? { severity: 'moderate' }
+            : { bodyPart: 'General' }
+          )
+        };
+        return [...prev, newSymptom];
+      }
+    });
+  };
+
+  const handleSeverityChange = (symptomName: string, severity: 'mild' | 'moderate' | 'severe') => {
+    setSelectedSymptoms(prev => 
+      prev.map(s => 
+        s.name === symptomName 
+          ? { ...s, severity }
+          : s
+      )
+    );
+  };
+
+  const handleBodyPartChange = (symptomName: string, bodyPart: string) => {
+    setSelectedSymptoms(prev => 
+      prev.map(s => 
+        s.name === symptomName 
+          ? { ...s, bodyPart }
+          : s
+      )
+    );
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredSymptoms = extendedSymptoms.filter(symptom =>
+    symptom.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const analyzeSymptoms = async () => {
+    if (selectedSymptoms.length === 0) return;
+
+    setIsAnalyzing(true);
+    try {
+      // Format symptoms for the backend using user-selected severity or body part
+      const formattedSymptoms = selectedSymptoms.map(symptom => ({
+        name: symptom.name,
+        severity: symptom.severity || 'moderate', // Default if not specified
+        bodyPart: symptom.bodyPart || getBodyPart(symptom.name) // Use user selection or fallback
+      }));
+
+      console.log('Sending symptoms to backend:', formattedSymptoms);
+      
+      const response = await fetch('http://localhost:8000/api/assess-symptoms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          symptoms: formattedSymptoms
+        }),
+      });
+      
+      console.log('Backend response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        // Format the analysis response
+        const formattedAnalysis = formatAnalysisResponse(data);
+        setAnalysis(formattedAnalysis);
+      } else {
+        // Try to get more specific error information
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            setAnalysis(`Analysis error: ${errorData.detail}`);
+          } else {
+            setAnalysis('Unable to analyze symptoms at this time. Please try again later.');
+          }
+        } catch {
+          setAnalysis('Unable to analyze symptoms at this time. Please try again later.');
+        }
+      }
+    } catch (error) {
+      console.error('Symptom analysis error:', error);
+      
+      // Check if it's a network error (backend not running)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setAnalysis('🚨 **Backend Service Unavailable**\n\nPlease ensure the server is running and try again. If the problem persists, contact support.');
+      } else {
+        setAnalysis('❌ **Connection Error**\n\nUnable to connect to the symptom analysis service. Please check your internet connection and try again.');
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+
+
+  // Helper function to determine body part
+  const getBodyPart = (symptom: string): string => {
+    const bodyPartMap: Record<string, string> = {
+      'Headache': 'head',
+      'Fever': 'general',
+      'Cough': 'respiratory',
+      'Chest Pain': 'chest',
+      'Abdominal Pain': 'abdomen',
+      'Back Pain': 'back',
+      'Joint Pain': 'joints',
+      'Shortness of Breath': 'respiratory',
+      'Dizziness': 'neurological',
+      'Nausea': 'digestive',
+      'Vomiting': 'digestive',
+      'Diarrhea': 'digestive',
+      'Constipation': 'digestive',
+      'Rash': 'skin',
+      'Swelling': 'general',
+      'Numbness': 'neurological',
+      'Tremors': 'neurological',
+      'Memory Loss': 'neurological',
+      'Vision Problems': 'eyes',
+      'Hearing Loss': 'ears',
+      'Sore Throat': 'throat',
+      'Runny Nose': 'respiratory',
+      'Congestion': 'respiratory',
+      'Fatigue': 'general',
+      'Insomnia': 'neurological',
+      'Anxiety': 'psychological',
+      'Depression': 'psychological'
     };
-    setSelectedSymptoms(prev => [...prev, newSymptom]);
+    
+    return bodyPartMap[symptom] || 'general';
+  };
+
+  // Helper function to format the analysis response
+  const formatAnalysisResponse = (data: any): string => {
+    let response = '';
+    
+    // Risk Level
+    if (data.riskLevel && data.riskLevel !== 'unknown') {
+      const riskEmoji = data.riskLevel === 'urgent' ? '🚨' : 
+                       data.riskLevel === 'high' ? '⚠️' : 
+                       data.riskLevel === 'moderate' ? '🟡' : '🟢';
+      response += `${riskEmoji} **Risk Level:** ${data.riskLevel.toUpperCase()}\n\n`;
+    }
+    
+    // Possible Conditions
+    if (data.conditions && data.conditions.length > 0) {
+      response += '## 🔍 **Possible Conditions**\n';
+      data.conditions.forEach((condition: any) => {
+        const urgency = condition.urgent ? '🚨 URGENT - Seek immediate medical attention!' : '⚠️ Monitor closely';
+        const description = condition.description ? ` - ${condition.description}` : '';
+        response += `• **${condition.name}** (${condition.probability}% likely)${description}\n`;
+        response += `  ${urgency}\n\n`;
+      });
+    }
+    
+    // Immediate Actions
+    if (data.immediateActions && data.immediateActions.length > 0) {
+      response += '## ⚡ **Immediate Actions**\n';
+      data.immediateActions.forEach((action: string) => {
+        response += `• ${action}\n`;
+      });
+      response += '\n';
+    }
+    
+    // Precautions
+    if (data.precautions && data.precautions.length > 0) {
+      response += '## 🛡️ **Precautions**\n';
+      data.precautions.forEach((precaution: string) => {
+        response += `• ${precaution}\n`;
+      });
+      response += '\n';
+    }
+    
+    // Medications
+    if (data.medications && data.medications.length > 0) {
+      response += '## 💊 **Medications**\n';
+      data.medications.forEach((medication: string) => {
+        response += `• ${medication}\n`;
+      });
+      response += '\n';
+    }
+    
+    // Lifestyle Changes
+    if (data.lifestyleChanges && data.lifestyleChanges.length > 0) {
+      response += '## 🌱 **Lifestyle Changes**\n';
+      data.lifestyleChanges.forEach((change: string) => {
+        response += `• ${change}\n`;
+      });
+      response += '\n';
+    }
+    
+    // When to Seek Medical Help
+    if (data.whenToSeekHelp && data.whenToSeekHelp.length > 0) {
+      response += '## 🚨 **When to Seek Medical Help**\n';
+      data.whenToSeekHelp.forEach((symptom: string) => {
+        response += `• ${symptom}\n`;
+      });
+      response += '\n';
+    }
+    
+    // Follow-up
+    if (data.followUp) {
+      response += '## 📋 **Follow-up**\n';
+      response += `${data.followUp}\n\n`;
+    }
+    
+    // Disclaimer
+    response += '---\n';
+    response += '**⚠️ Disclaimer:** This analysis is for informational purposes only and should not replace professional medical advice. Always consult a qualified healthcare provider for proper diagnosis and treatment.';
+    
+    if (!response.trim()) {
+      response = 'Analysis completed. Please consult a healthcare professional for medical advice.';
+    }
+    
+    return response;
+  };
+
+
+
+  const clearAll = () => {
+    setSelectedSymptoms([]);
+    setAnalysis(null);
     setSearchTerm('');
   };
 
-  const removeSymptom = (id: string) => {
-    setSelectedSymptoms(prev => prev.filter(s => s.id !== id));
+  const getSeverityColor = (symptom: string) => {
+    // This is a simplified severity assessment - in a real app, you'd have a database
+    const severeSymptoms = ['Chest Pain', 'Shortness of Breath', 'Seizures', 'Paralysis', 'Severe Bleeding'];
+    const moderateSymptoms = ['Fever', 'Severe Pain', 'Dizziness', 'Confusion'];
+    
+    if (severeSymptoms.includes(symptom)) return 'text-red-600 dark:text-red-400';
+    if (moderateSymptoms.includes(symptom)) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-green-600 dark:text-green-400';
   };
-
-  const updateSymptom = (id: string, updates: Partial<Symptom>) => {
-    setSelectedSymptoms(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'mild': return 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-gray-700 border-green-200';
-      case 'moderate': return 'text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-gray-800 dark:border-gray-700 border-yellow-200';
-      case 'severe': return 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-gray-800 dark:border-gray-700 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-800 dark:border-gray-700 border-gray-200';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'low': return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-gray-800';
-      case 'moderate': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-gray-800';
-      case 'high': return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-gray-800';
-      default: return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800';
-    }
-  };
-
-  const filteredSymptoms = [...commonSymptoms, ...extendedSymptoms].filter(symptom =>
-    symptom.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !selectedSymptoms.find(s => s.name === symptom)
-  );
-
-  const { incrementSymptomChecks } = useHealth();
-
-  const getAIAssessment = async () => {
-    setLoading(true);
-    setError(null);
-    setAssessment(null);
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/assess-symptoms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          symptoms: selectedSymptoms.map(({ name, severity, bodyPart }) => ({ name, severity, bodyPart }))
-        })
-      });
-      if (!response.ok) throw new Error('Failed to get assessment');
-      const data = await response.json();
-      setAssessment(data);
-      incrementSymptomChecks(); // Increment the symptom check count
-      setCurrentStep('assessment');
-    } catch (err: any) {
-      setError(err.message || 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (currentStep === 'assessment') {
-    return (
-      <div className="h-full bg-white dark:bg-gray-800">
-        <div className="border-b border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Health Assessment Results</h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">AI-powered analysis of your symptoms</p>
-        </div>
-        <div className="p-6 space-y-6">
-          {loading && <div className="text-gray-600">Loading assessment...</div>}
-          {error && <div className="text-red-600">{error}</div>}
-          {assessment && (
-            <>
-              {/* Risk Level */}
-                              <div className={`p-4 rounded-lg border-2 ${getPriorityColor(assessment.riskLevel)} border-gray-200 dark:border-gray-700`}>
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-6 h-6 text-current" />
-                  <div>
-                    <h3 className="font-semibold capitalize text-gray-800 dark:text-white">Risk Level: {assessment.riskLevel}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Based on your reported symptoms</p>
-                  </div>
-                </div>
-              </div>
-              {/* Possible Conditions */}
-              <div>
-                <h3 className="font-semibold text-gray-800 dark:text-white mb-3">Possible Conditions</h3>
-                <div className="space-y-3">
-                  {assessment.conditions && assessment.conditions.length > 0 ? assessment.conditions.map((condition: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-800 dark:text-white">{condition.name}</p>
-                        {condition.probability && <p className="text-sm text-gray-600 dark:text-gray-400">{condition.probability}% match</p>}
-                      </div>
-                      <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(condition.risk)}`}>
-                        {condition.risk}
-                      </span>
-                    </div>
-                  )) : <div className="text-gray-500 dark:text-gray-400">No conditions found.</div>}
-                </div>
-              </div>
-              {/* Recommendations */}
-              <div>
-                <h3 className="font-semibold text-gray-800 dark:text-white mb-3">Recommendations</h3>
-                <div className="space-y-2">
-                  {assessment.recommendations && assessment.recommendations.length > 0 ? assessment.recommendations.map((rec: string, index: number) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <CheckCircle className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-gray-800 dark:text-white">{rec}</p>
-                    </div>
-                  )) : <div className="text-gray-500 dark:text-gray-400">No recommendations found.</div>}
-                </div>
-              </div>
-            </>
-          )}
-          <div className="flex gap-3">
-            <Button onClick={() => { setCurrentStep('symptoms'); setAssessment(null); }}>
-              Check New Symptoms
-            </Button>
-            <Button variant="outline">
-              Save Assessment
-            </Button>
-            <Button variant="secondary">
-              Book Appointment
-            </Button>
-                  </div>
-      </div>
-    </div>
-  );
-}
 
   return (
     <div className="h-full bg-white dark:bg-gray-800">
+      {/* Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Symptom Checker</h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Get AI-powered health assessments based on your symptoms</p>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Symptom Checker</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Select your symptoms to get AI-powered health insights and recommendations</p>
       </div>
-      <div className="p-6 space-y-6">
-        {/* Step Indicator */}
-        <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className={`flex items-center gap-2 ${currentStep === 'symptoms' ? 'text-gray-600 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep === 'symptoms' ? 'bg-gray-600 text-white' : 'bg-green-600 text-white'
-            }`}>
-              {currentStep === 'symptoms' ? '1' : <CheckCircle className="w-5 h-5" />}
-            </div>
-            <span className="font-medium">Select Symptoms</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-          <div className={`flex items-center gap-2 ${currentStep === 'details' ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep === 'details' ? 'bg-gray-600 text-white' : 'border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
-            }`}>
-              2
-            </div>
-            <span className="font-medium">Add Details</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-          <div className={`flex items-center gap-2 text-gray-400 dark:text-gray-500`}>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500">
-              3
-            </div>
-            <span className="font-medium">Get Assessment</span>
-          </div>
-        </div>
 
-        {currentStep === 'symptoms' && (
-          <>
-            {/* Symptom Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Search and select your symptoms
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Type a symptom..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                />
-              </div>
-              
-              {/* Symptom Suggestions */}
-              {searchTerm && filteredSymptoms.length > 0 && (
-                <div className="mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                  {filteredSymptoms.map((symptom) => (
-                    <button
-                      key={symptom}
-                      onClick={() => addSymptom(symptom)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-800 dark:text-white"
-                    >
-                      {symptom}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Common Symptoms */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Common symptoms:</p>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+          {/* Left Side - Symptom Selection */}
+          <div className="p-6 border-r border-gray-200 dark:border-gray-600">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+                Common Symptoms
+              </h2>
               <div className="flex flex-wrap gap-2">
-                {commonSymptoms.filter(s => !selectedSymptoms.find(sel => sel.name === s)).map((symptom) => (
-                  <button
+                {commonSymptoms.map((symptom) => (
+                  <Button
                     key={symptom}
-                    onClick={() => addSymptom(symptom)}
-                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-white rounded-full transition-all duration-200 border border-gray-200 dark:border-gray-600 shadow-sm"
+                    variant={selectedSymptoms.some(s => s.name === symptom) ? 'primary' : 'outline'}
+                    onClick={() => handleSymptomToggle(symptom)}
+                    className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                      selectedSymptoms.some(s => s.name === symptom)
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500'
+                    }`}
                   >
                     {symptom}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
 
-            {/* Selected Symptoms */}
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+                Search All Symptoms
+              </h2>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search symptoms..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:text-white placeholder-gray-400 dark:placeholder-gray-300"
+                />
+              </div>
+              
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {filteredSymptoms.map((symptom) => (
+                  <Button
+                    key={symptom}
+                    variant={selectedSymptoms.some(s => s.name === symptom) ? 'primary' : 'ghost'}
+                    onClick={() => handleSymptomToggle(symptom)}
+                    className={`w-full justify-start px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                      selectedSymptoms.some(s => s.name === symptom)
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <span className={getSeverityColor(symptom)}>●</span>
+                    <span className="ml-2">{symptom}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={analyzeSymptoms}
+                disabled={selectedSymptoms.length === 0 || isAnalyzing}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Analyze Symptoms
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={clearAll}
+                variant="outline"
+                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Clear
+              </Button>
+            </div>
+          </div>
+
+          {/* Right Side - Analysis Results */}
+          <div className="p-6 bg-gray-50 dark:bg-gray-800">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+              Analysis Results
+            </h2>
+            
             {selectedSymptoms.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Selected symptoms:</p>
-                <div className="space-y-2">
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-3">
+                  Selected Symptoms ({selectedSymptoms.length})
+                </h3>
+                <div className="space-y-3">
                   {selectedSymptoms.map((symptom) => (
-                    <div key={symptom.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <span className="font-medium flex-1 text-gray-800 dark:text-white">{symptom.name}</span>
+                    <div
+                      key={symptom.name}
+                      className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-700"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-blue-800 dark:text-blue-200 font-medium">
+                          {symptom.name}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {symptom.inputType === 'severity' ? (
+                            <>
+                              <span className="text-xs text-gray-600 dark:text-gray-400">Severity:</span>
+                              <select
+                                value={symptom.severity || 'moderate'}
+                                onChange={(e) => handleSeverityChange(symptom.name, e.target.value as 'mild' | 'moderate' | 'severe')}
+                                className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="mild">Mild</option>
+                                <option value="moderate">Moderate</option>
+                                <option value="severe">Severe</option>
+                              </select>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-xs text-gray-600 dark:text-gray-400">Body Part:</span>
+                              <select
+                                value={symptom.bodyPart || 'General'}
+                                onChange={(e) => handleBodyPartChange(symptom.name, e.target.value)}
+                                className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                {bodyPartOptions.map(part => (
+                                  <option key={part} value={part}>{part}</option>
+                                ))}
+                              </select>
+                            </>
+                          )}
+                        </div>
+                      </div>
                       <button
-                        onClick={() => removeSymptom(symptom.id)}
-                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm"
+                        onClick={() => handleSymptomToggle(symptom.name)}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 p-1"
                       >
-                        Remove
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
                 </div>
-                
-                <Button 
-                  onClick={() => setCurrentStep('details')} 
-                  className="mt-4"
-                  disabled={selectedSymptoms.length === 0}
-                >
-                  Continue to Details
-                </Button>
               </div>
             )}
-          </>
-        )}
 
-        {currentStep === 'details' && (
-          <div className="space-y-4">
-            <h3 className="font-semibold text-gray-800 dark:text-white">Provide more details about your symptoms</h3>
-            
-            {selectedSymptoms.map((symptom) => (
-              <div key={symptom.id} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h4 className="font-medium text-gray-800 dark:text-white mb-3">{symptom.name}</h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Severity
-                    </label>
-                    <select
-                      value={symptom.severity}
-                      onChange={(e) => updateSymptom(symptom.id, { severity: e.target.value as 'mild' | 'moderate' | 'severe' })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    >
-                      <option value="mild">Mild</option>
-                      <option value="moderate">Moderate</option>
-                      <option value="severe">Severe</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Body Part
-                    </label>
-                    <select
-                      value={symptom.bodyPart}
-                      onChange={(e) => updateSymptom(symptom.id, { bodyPart: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    >
-                      <option value="general">General</option>
-                      <option value="head">Head</option>
-                      <option value="chest">Chest</option>
-                      <option value="abdomen">Abdomen</option>
-                      <option value="back">Back</option>
-                      <option value="limbs">Limbs</option>
-                    </select>
+            {analysis ? (
+              <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-6 h-6 text-yellow-500 mt-1 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800 dark:text-gray-100 mb-2">
+                      AI Assessment
+                    </h4>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                      {analysis}
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
-            
-            <div className="flex gap-3">
-              <Button onClick={getAIAssessment} disabled={loading}>
-                {loading ? 'Getting Assessment...' : 'Get AI Assessment'}
-              </Button>
-              <Button variant="ghost" onClick={() => setCurrentStep('symptoms')} disabled={loading}>
-                Back
-              </Button>
-            </div>
-            {error && <div className="text-red-600 dark:text-red-400 mt-2">{error}</div>}
+            ) : (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-12">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <p className="text-lg font-medium mb-2">No Analysis Yet</p>
+                <p className="text-sm">
+                  Select symptoms and click "Analyze Symptoms" to get AI-powered health insights.
+                </p>
+              </div>
+            )}
+
+            {selectedSymptoms.length === 0 && !analysis && (
+              <div className="mt-8 text-center text-gray-500 dark:text-gray-400">
+                <p className="text-sm">
+                  💡 <strong>Tip:</strong> Start by selecting common symptoms or search for specific ones to get personalized health recommendations.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
