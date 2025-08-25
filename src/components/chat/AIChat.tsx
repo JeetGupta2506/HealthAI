@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Brain, Stethoscope, Apple, Heart } from 'lucide-react';
+import { Send, Bot, User, Brain, Stethoscope, Apple, Heart, MessageSquare, FileText } from 'lucide-react';
 
 import { Button } from '../ui/Button';
 import { ChatMessage } from '../../types/health';
@@ -28,6 +28,7 @@ export function AIChat() {
   const [selectedAgent, setSelectedAgent] = useState<string>('general');
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [responseStyle, setResponseStyle] = useState<'concise' | 'detailed'>('concise');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -54,7 +55,7 @@ export function AIChat() {
     setError(null);
 
     // Debug log
-    console.log("Sending to backend:", inputValue, selectedAgent);
+    console.log("Sending to backend:", inputValue, selectedAgent, responseStyle);
 
     try {
       const response = await fetch('http://localhost:8000/chat', {
@@ -64,7 +65,8 @@ export function AIChat() {
         },
         body: JSON.stringify({
           message: inputValue,
-          agent_type: selectedAgent
+          agent_type: selectedAgent,
+          response_style: responseStyle
         })
       });
       if (!response.ok) {
@@ -96,23 +98,61 @@ export function AIChat() {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Health Assistant</h2>
         <p className="text-gray-600 dark:text-gray-300 mt-1">Multi-agent AI system powered by Gemini, LangGraph & CrewAI</p>
       </div>
-      {/* Agent Selector */}
+      
+      {/* Agent Selector and Response Style Toggle */}
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-wrap gap-2">
-          {agentTypes.map((agent) => (
-            <button
-              key={agent.id}
-              onClick={() => setSelectedAgent(agent.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                selectedAgent === agent.id 
-                  ? `${agent.color} text-white shadow-md` 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 shadow-sm'
-              }`}
-            >
-              {agent.icon}
-              {agent.name}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          {/* Agent Selector */}
+          <div className="flex flex-wrap gap-2">
+            {agentTypes.map((agent) => (
+              <button
+                key={agent.id}
+                onClick={() => setSelectedAgent(agent.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  selectedAgent === agent.id 
+                    ? `${agent.color} text-white shadow-md` 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 shadow-sm'
+                }`}
+              >
+                {agent.icon}
+                {agent.name}
+              </button>
+            ))}
+          </div>
+          
+          {/* Response Style Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Response Style:</span>
+            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setResponseStyle('concise')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  responseStyle === 'concise'
+                    ? 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                Concise
+              </button>
+              <button
+                onClick={() => setResponseStyle('detailed')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  responseStyle === 'detailed'
+                    ? 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                Detailed
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Response Style Info */}
+        <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+          <span className="font-medium">Concise:</span> Brief, direct answers • <span className="font-medium">Detailed:</span> Comprehensive explanations with examples
         </div>
       </div>
       {/* Messages */}
@@ -172,7 +212,7 @@ export function AIChat() {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={`Ask the ${getAgentInfo(selectedAgent).name} agent...`}
+            placeholder={`Ask the ${getAgentInfo(selectedAgent).name} agent... (${responseStyle === 'concise' ? 'brief' : 'detailed'} response)`}
             className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             disabled={isTyping}

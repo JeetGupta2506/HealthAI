@@ -100,6 +100,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
     agent_type: Optional[str] = "general"
+    response_style: Optional[str] = "concise"  # Add response style parameter
     user_id: Optional[int] = None  # Add user identification
 
 class ChatResponse(BaseModel):
@@ -139,6 +140,9 @@ except Exception as e:
 PROMPT_TEMPLATES = {
     "general": (
         "You are a helpful general health assistant. "
+        "Response Style: {response_style}\n\n"
+        "If response_style is 'concise': Keep your answer brief and to the point (2-3 sentences max). "
+        "If response_style is 'detailed': Provide comprehensive information with examples and explanations.\n\n"
         "Always format your response in **Markdown** with:\n"
         "- Clear headings (## Heading)\n"
         "- Bullet points (- item)\n"
@@ -147,6 +151,9 @@ PROMPT_TEMPLATES = {
     ),
     "symptom": (
         "You are a symptom checker AI. "
+        "Response Style: {response_style}\n\n"
+        "If response_style is 'concise': Give brief, direct answers (2-3 sentences max). "
+        "If response_style is 'detailed': Provide comprehensive analysis with multiple sections.\n\n"
         "Always format your response in **Markdown** with:\n"
         "- Clear sections (## Symptoms, ## Possible Causes, ## Next Steps)\n"
         "- Bullet points (- item)\n"
@@ -155,6 +162,9 @@ PROMPT_TEMPLATES = {
     ),
     "nutrition": (
         "You are a nutrition expert AI. "
+        "Response Style: {response_style}\n\n"
+        "If response_style is 'concise': Keep advice brief and actionable (2-3 sentences max). "
+        "If response_style is 'detailed': Provide comprehensive guidance with examples and explanations.\n\n"
         "Always format your response in **Markdown** with:\n"
         "- Headings for structure (## Diet Tips, ## Foods to Include, ## Foods to Avoid)\n"
         "- Bullet points for lists\n"
@@ -163,6 +173,9 @@ PROMPT_TEMPLATES = {
     ),
     "mental-health": (
         "You are a mental health coach AI. "
+        "Response Style: {response_style}\n\n"
+        "If response_style is 'concise': Give brief, supportive advice (2-3 sentences max). "
+        "If response_style is 'detailed': Provide comprehensive strategies with examples and resources.\n\n"
         "Always format your response in **Markdown** with:\n"
         "- Headings for clarity (## Coping Strategies, ## Resources, ## Self-Care)\n"
         "- Bullet points for advice\n"
@@ -171,17 +184,18 @@ PROMPT_TEMPLATES = {
     ),
 } 
 
-def get_prompt(agent_type: str, message: str) -> str:
-    print("DEBUG get_prompt called with agent_type:", agent_type, "message:", message)
+def get_prompt(agent_type: str, message: str, response_style: str = "concise") -> str:
+    print("DEBUG get_prompt called with agent_type:", agent_type, "message:", message, "response_style:", response_style)
     template = PROMPT_TEMPLATES.get(agent_type, PROMPT_TEMPLATES["general"])
     print("DEBUG get_prompt template:", template)
     print("DEBUG get_prompt message:", message)
-    return template.format(message=message)
+    return template.format(message=message, response_style=response_style)
 
 def llm_node(state: dict):
     print("DEBUG llm_node state at entry:", state)
     agent_type = state.get("agent_type", "general")
     message = state.get("message", "")
+    response_style = state.get("response_style", "concise")
     
     # Check if LLM is available
     if llm is None:
@@ -195,7 +209,7 @@ def llm_node(state: dict):
         state["response"] = fallback_responses.get(agent_type, fallback_responses["general"])
         return state
     
-    prompt = get_prompt(agent_type, message)
+    prompt = get_prompt(agent_type, message, response_style)
     print("DEBUG llm_node prompt:", prompt)
     try:
         response = llm.invoke(prompt)
@@ -357,7 +371,7 @@ async def chat_endpoint(request: ChatRequest):
         # db.add(user_message)
         
         # Generate AI response
-        state = {"agent_type": request.agent_type, "message": request.message}
+        state = {"agent_type": request.agent_type, "message": request.message, "response_style": request.response_style}
         try:
             result = chat_workflow.invoke(state)
             if not result or not isinstance(result, dict):

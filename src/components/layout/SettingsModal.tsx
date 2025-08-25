@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Lock, Trash2, Save, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/Button';
-
-interface SettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
 interface ProfileData {
   name: string;
   email: string;
   dateOfBirth: string;
+}
+
+interface SettingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  profileData: ProfileData;
+  onProfileUpdate: (updatedProfile: ProfileData) => void;
 }
 
 interface PasswordData {
@@ -19,13 +21,9 @@ interface PasswordData {
   confirmPassword: string;
 }
 
-export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, profileData, onProfileUpdate }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'account'>('profile');
-  const [profileData, setProfileData] = useState<ProfileData>({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    dateOfBirth: '1990-01-01'
-  });
+  const [localProfileData, setLocalProfileData] = useState<ProfileData>(profileData);
   const [passwordData, setPasswordData] = useState<PasswordData>({
     currentPassword: '',
     newPassword: '',
@@ -39,6 +37,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Update local profile data when prop changes
+  useEffect(() => {
+    setLocalProfileData(profileData);
+  }, [profileData]);
+
   if (!isOpen) return null;
 
   const handleProfileUpdate = async () => {
@@ -48,6 +51,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update the parent component's profile data
+      onProfileUpdate(localProfileData);
+      
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
       // Clear message after 3 seconds
@@ -189,8 +196,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </label>
                 <input
                   type="text"
-                  value={profileData.name}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                  value={localProfileData.name}
+                  onChange={(e) => setLocalProfileData(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Enter your full name"
                 />
@@ -202,8 +209,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </label>
                 <input
                   type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                  value={localProfileData.email}
+                  onChange={(e) => setLocalProfileData(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Enter your email"
                 />
@@ -215,8 +222,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </label>
                 <input
                   type="date"
-                  value={profileData.dateOfBirth}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                  value={localProfileData.dateOfBirth}
+                  onChange={(e) => setLocalProfileData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
