@@ -72,26 +72,24 @@ export function HealthMetrics() {
         if (isAchieved && !wasAchieved && !showingCelebration.includes(metric.id)) {
           setShowingCelebration(prev => [...prev, metric.id]);
           
-          // Only show confetti for hydration, and position it on the hydration box
+          // Only show confetti for hydration, and position it in the center of the page
           if (metric.name === 'Hydration') {
-            // Find the hydration metric element to position confetti correctly
-            const hydrationElement = document.querySelector(`[data-metric-id="${metric.id}"]`);
-            if (hydrationElement) {
-              const rect = hydrationElement.getBoundingClientRect();
-              const x = (rect.left + rect.right) / 2 / window.innerWidth;
-              const y = (rect.top + rect.bottom) / 2 / window.innerHeight;
-              
-              confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { x, y }
-              });
-            }
+                         confetti({
+               particleCount: 150,
+               spread: 70,
+               origin: { x: 0.5, y: 0.5 },
+               startVelocity: 45,
+               gravity: 0.8,
+               ticks: 120,
+               colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
+               shapes: ['circle', 'square'],
+               scalar: 2.5
+             });
           }
           
-          setTimeout(() => {
-            setShowingCelebration(prev => prev.filter(id => id !== metric.id));
-          }, 3000);
+                     setTimeout(() => {
+             setShowingCelebration(prev => prev.filter(id => id !== metric.id));
+           }, 2000);
         }
 
         // Update achievement status
