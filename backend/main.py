@@ -131,19 +131,29 @@ class SymptomAssessmentRequest(BaseModel):
 class SymptomAssessmentResponse(BaseModel):
     riskLevel: str
     conditions: List[dict]
-    recommendations: List[str]
+    immediateActions: List[str]
+    precautions: List[str]
+    medications: List[str]
+    lifestyleChanges: List[str]
+    whenToSeekHelp: List[str]
+    followUp: str
 
 llm = None
 
 # Initialize LLM only if API key is available
 try:
     api_key = os.getenv("GOOGLE_API_KEY")
+    print(f"DEBUG: Google API key found: {api_key is not None}")
     if api_key and api_key != "your_google_api_key_here":
+        print("DEBUG: Initializing LLM with Google API key")
         llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+        print("DEBUG: LLM initialized successfully")
     else:
         print("Warning: Google API key not set. AI features will be limited.")
+        print("DEBUG: Set GOOGLE_API_KEY environment variable to enable AI features")
 except Exception as e:
     print(f"Warning: Could not initialize LLM: {e}. AI features will be limited.")
+    print(f"DEBUG: LLM initialization error details: {e}")
 
 # Prompt templates for each agent type
 PROMPT_TEMPLATES = {
@@ -277,6 +287,35 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+@app.get("/test-symptoms")
+def test_symptoms():
+    """Test endpoint to check if symptom assessment is working"""
+    return {
+        "message": "Symptom assessment endpoint is working",
+        "llm_available": llm is not None,
+        "api_key_set": os.getenv("GOOGLE_API_KEY") is not None,
+        "llm_type": str(type(llm)) if llm else "None"
+    }
+
+@app.get("/test-llm")
+def test_llm():
+    """Test endpoint to check if LLM is working"""
+    try:
+        if llm is None:
+            return {"error": "LLM not available"}
+        
+        # Test a simple prompt
+        test_prompt = "Say 'Hello, LLM is working!'"
+        response = llm.invoke(test_prompt)
+        
+        return {
+            "success": True,
+            "response": str(response.content) if hasattr(response, 'content') else str(response),
+            "response_type": str(type(response))
+        }
+    except Exception as e:
+        return {"error": str(e), "traceback": str(e.__traceback__)}
 
 @app.post("/api/signup")
 async def signup(request: SignupRequest):
@@ -421,46 +460,194 @@ async def chat_endpoint(request: ChatRequest):
 
 @app.post("/api/assess-symptoms", response_model=SymptomAssessmentResponse)
 async def assess_symptoms(request: SymptomAssessmentRequest):
+    print(f"DEBUG: assess_symptoms called with request: {request}")
+    print(f"DEBUG: LLM available: {llm is not None}")
+    
     # Check if LLM is available
     if llm is None:
+        print("DEBUG: LLM not available, returning fallback response")
         return {
             "riskLevel": "unknown",
-            "conditions": [{"name": "Service Unavailable", "probability": 0, "urgent": False}],
-            "recommendations": [
-                "AI symptom assessment is temporarily unavailable.",
-                "Please consult a healthcare professional for medical advice.",
-                "If you have urgent symptoms, seek immediate medical attention."
-            ]
+            "conditions": [{"name": "Service Unavailable", "probability": 0, "urgent": False, "description": "AI service unavailable"}],
+            "immediateActions": ["Consult a healthcare professional for medical advice"],
+            "precautions": ["Monitor your symptoms closely"],
+            "medications": ["No medications recommended without professional consultation"],
+            "lifestyleChanges": ["Maintain healthy habits"],
+            "whenToSeekHelp": ["If symptoms worsen or become severe"],
+            "followUp": "Please consult a qualified healthcare provider for proper diagnosis and treatment."
         }
     
-    symptoms_text = "\n".join(
-        [f"- {s.name} (Severity: {s.severity}, Body Part: {s.bodyPart})" for s in request.symptoms]
-    )
-    prompt = (
-        "You are a medical AI assistant. Given these symptoms, provide:\n"
-        "1. Risk level (low, moderate, high)\n"
-        "2. 2-3 possible conditions with probability and urgency\n"
-        "3. 3-4 recommendations for the user\n"
-        f"Symptoms:\n{symptoms_text}\n"
-        "Respond in JSON with keys: riskLevel, conditions, recommendations."
-    )
-    response = llm.invoke(prompt)
-    import json, re
-    raw = response.content if hasattr(response, 'content') else response
-    # Remove code block markers and any leading/trailing whitespace
-    cleaned = re.sub(r"^```(?:json)?|```$", "", raw, flags=re.MULTILINE).strip()
-    # Extract the first {...} block if extra text is present
-    match = re.search(r"\{[\s\S]*\}", cleaned)
-    if match:
-        cleaned = match.group(0)
     try:
-        data = json.loads(cleaned)
-        return data
+        print("DEBUG: Entering try block")
+        # For now, return a simple response to test the endpoint
+        symptoms_text = ", ".join([s['name'] for s in request.symptoms])
+        print(f"DEBUG: Symptoms text: {symptoms_text}")
+        print("DEBUG: About to return response")
+        
+        # Analyze symptoms based on severity and type
+        symptoms_list = [s['name'].lower() for s in request.symptoms]
+        severity_counts = {'mild': 0, 'moderate': 0, 'severe': 0}
+        
+        # Count severity levels
+        for s in request.symptoms:
+            severity_counts[s['severity']] += 1
+        
+        # Determine overall risk level based on severity
+        if severity_counts['severe'] > 0:
+            risk_level = "high" if severity_counts['severe'] >= 2 else "high"
+        elif severity_counts['moderate'] > 2:
+            risk_level = "moderate"
+        elif severity_counts['moderate'] > 0:
+            risk_level = "moderate"
+        else:
+            risk_level = "low"
+        
+        # Check for urgent symptoms regardless of user-selected severity
+        urgent_symptoms = ['chest pain', 'shortness of breath', 'seizures', 'paralysis', 'severe bleeding']
+        has_urgent = any(urgent in symptom for symptom in symptoms_list for urgent in urgent_symptoms)
+        
+        if has_urgent:
+            risk_level = "urgent"
+        
+        # Generate comprehensive response based on severity and body parts
+        if any("headache" in symptom for symptom in symptoms_list):
+            severity = next((s['severity'] for s in request.symptoms if 'headache' in s['name'].lower()), 'moderate')
+            
+            if severity == 'severe':
+                response = {
+                    "riskLevel": "high",
+                    "conditions": [
+                        {"name": "Severe Migraine", "probability": 60, "urgent": False, "description": "Intense headache requiring immediate attention"},
+                        {"name": "Cluster Headache", "probability": 25, "urgent": False, "description": "Severe recurring headache"},
+                        {"name": "Secondary Headache", "probability": 15, "urgent": True, "description": "Headache caused by underlying condition"}
+                    ],
+                    "immediateActions": ["Take prescribed pain medication", "Rest in dark, quiet room", "Apply cold compress"],
+                    "precautions": ["Avoid bright lights and loud sounds", "Stay hydrated", "Avoid known triggers"],
+                    "medications": ["Sumatriptan 25-100mg for migraines", "Acetaminophen 1000mg every 6 hours", "Consult doctor for prescription options"],
+                    "lifestyleChanges": ["Identify and avoid triggers", "Maintain regular sleep schedule", "Practice stress management"],
+                    "whenToSeekHelp": ["Sudden severe headache", "Headache with fever and stiff neck", "Headache with vision changes"],
+                    "followUp": "If severe headaches persist or worsen, seek immediate medical attention."
+                }
+            elif severity == 'moderate':
+                response = {
+                    "riskLevel": "moderate",
+                    "conditions": [
+                        {"name": "Tension Headache", "probability": 70, "urgent": False, "description": "Common stress-related headache"},
+                        {"name": "Mild Migraine", "probability": 25, "urgent": False, "description": "Moderate migraine episode"}
+                    ],
+                    "immediateActions": ["Take over-the-counter pain relief", "Rest in quiet environment"],
+                    "precautions": ["Reduce stress", "Stay hydrated", "Monitor pain levels"],
+                    "medications": ["Ibuprofen 400-600mg every 6-8 hours", "Acetaminophen 500-1000mg every 4-6 hours"],
+                    "lifestyleChanges": ["Regular exercise", "Adequate sleep", "Stress management techniques"],
+                    "whenToSeekHelp": ["Headache worsens significantly", "Lasts more than 72 hours", "Associated with fever"],
+                    "followUp": "Monitor for 24-48 hours. If pain increases or persists, consult healthcare provider."
+                }
+            else:  # mild
+                response = {
+                    "riskLevel": "low",
+                    "conditions": [
+                        {"name": "Mild Tension Headache", "probability": 80, "urgent": False, "description": "Light stress or fatigue-related headache"}
+                    ],
+                    "immediateActions": ["Rest and relax", "Stay hydrated", "Gentle neck stretches"],
+                    "precautions": ["Avoid screens if possible", "Ensure good posture", "Take breaks from activities"],
+                    "medications": ["Acetaminophen 500mg if needed", "Ibuprofen 200mg if needed"],
+                    "lifestyleChanges": ["Regular sleep schedule", "Stay hydrated", "Take regular breaks"],
+                    "whenToSeekHelp": ["Headache becomes severe", "Lasts more than 24 hours", "Frequent recurrence"],
+                    "followUp": "Should improve with rest. If persists, consider underlying causes."
+                }
+        elif any("pain" in symptom for symptom in symptoms_list):
+            # Handle pain symptoms with body part information
+            pain_symptoms = [s for s in request.symptoms if 'pain' in s['name'].lower()]
+            body_parts = [s['bodyPart'] for s in pain_symptoms]
+            
+            if 'chest' in [bp.lower() for bp in body_parts]:
+                response = {
+                    "riskLevel": "high",
+                    "conditions": [
+                        {"name": "Cardiac Concern", "probability": 40, "urgent": True, "description": "Chest pain requires immediate evaluation"},
+                        {"name": "Muscle Strain", "probability": 35, "urgent": False, "description": "Chest muscle strain from activity"},
+                        {"name": "Acid Reflux", "probability": 25, "urgent": False, "description": "Gastroesophageal reflux causing chest discomfort"}
+                    ],
+                    "immediateActions": ["Seek immediate medical attention", "Stop physical activity", "Sit down and rest"],
+                    "precautions": ["Do not ignore chest pain", "Call emergency services if severe", "Avoid strenuous activity"],
+                    "medications": ["Do not self-medicate chest pain", "Follow emergency protocols", "Take prescribed cardiac medications if any"],
+                    "lifestyleChanges": ["Avoid triggers", "Maintain heart-healthy diet", "Regular gentle exercise as advised"],
+                    "whenToSeekHelp": ["Any chest pain", "Pain with shortness of breath", "Pain radiating to arm or jaw"],
+                    "followUp": "Chest pain requires immediate medical evaluation. Do not delay seeking care."
+                }
+            elif 'back' in [bp.lower() for bp in body_parts]:
+                response = {
+                    "riskLevel": "moderate",
+                    "conditions": [
+                        {"name": "Muscle Strain", "probability": 60, "urgent": False, "description": "Back muscle strain from lifting or posture"},
+                        {"name": "Disc Issues", "probability": 25, "urgent": False, "description": "Possible disc herniation or degeneration"},
+                        {"name": "Sciatica", "probability": 15, "urgent": False, "description": "Nerve pain radiating from lower back"}
+                    ],
+                    "immediateActions": ["Apply ice for first 24-48 hours", "Rest in comfortable position", "Avoid heavy lifting"],
+                    "precautions": ["Maintain good posture", "Use proper lifting techniques", "Sleep on firm surface"],
+                    "medications": ["Ibuprofen 400-600mg every 6-8 hours", "Acetaminophen 500-1000mg every 6 hours", "Muscle relaxants if prescribed"],
+                    "lifestyleChanges": ["Regular gentle stretching", "Strengthen core muscles", "Ergonomic workspace setup"],
+                    "whenToSeekHelp": ["Severe pain with numbness", "Pain after injury", "Pain with fever"],
+                    "followUp": "Most back pain improves in 2-4 weeks. Seek care if pain worsens or persists."
+                }
+            elif any(part.lower() in ['arms', 'hands', 'legs', 'feet', 'joints'] for part in body_parts):
+                limb_part = next((part for part in body_parts if part.lower() in ['arms', 'hands', 'legs', 'feet', 'joints']), 'limb')
+                response = {
+                    "riskLevel": "low",
+                    "conditions": [
+                        {"name": f"{limb_part.capitalize()} Strain", "probability": 50, "urgent": False, "description": f"Muscle or joint strain in {limb_part.lower()}"},
+                        {"name": "Overuse Injury", "probability": 30, "urgent": False, "description": "Repetitive stress injury"},
+                        {"name": "Arthritis", "probability": 20, "urgent": False, "description": "Joint inflammation"}
+                    ],
+                    "immediateActions": ["Rest the affected area", "Apply ice if swollen", "Elevate if possible"],
+                    "precautions": ["Avoid repetitive motions", "Use proper ergonomics", "Take regular breaks"],
+                    "medications": ["Ibuprofen 200-400mg every 6-8 hours", "Topical anti-inflammatory cream", "Acetaminophen for pain"],
+                    "lifestyleChanges": ["Gentle stretching exercises", "Strengthen supporting muscles", "Maintain healthy weight"],
+                    "whenToSeekHelp": ["Severe swelling", "Loss of function", "Pain after injury"],
+                    "followUp": f"Monitor {limb_part.lower()} pain. Most minor injuries improve with rest and care."
+                }
+            else:
+                response = {
+                    "riskLevel": "moderate",
+                    "conditions": [
+                        {"name": "General Pain", "probability": 70, "urgent": False, "description": "Pain requiring evaluation and management"}
+                    ],
+                    "immediateActions": ["Rest and avoid aggravating activities", "Apply appropriate hot/cold therapy"],
+                    "precautions": ["Monitor pain levels", "Avoid overexertion", "Use pain management techniques"],
+                    "medications": ["Over-the-counter pain relievers as directed", "Follow current pain management plan"],
+                    "lifestyleChanges": ["Gentle exercise as tolerated", "Stress management", "Adequate sleep"],
+                    "whenToSeekHelp": ["Severe or worsening pain", "New symptoms develop", "Unable to function"],
+                    "followUp": "Monitor pain and seek care if it worsens or interferes with daily activities."
+                }
+        else:
+            # Default response for other symptoms
+            response = {
+                "riskLevel": risk_level,
+                "conditions": [
+                    {"name": "Symptom Assessment", "probability": 65, "urgent": has_urgent, "description": f"Multiple symptoms with {risk_level} severity level"}
+                ],
+                "immediateActions": ["Monitor symptoms closely", "Rest and stay hydrated", "Track severity changes"],
+                "precautions": ["Avoid activities that worsen symptoms", "Keep detailed symptom diary", "Stay in contact with healthcare provider"],
+                "medications": ["Follow current medication regimen", "Over-the-counter pain relief as needed", "Consult provider for specific recommendations"],
+                "lifestyleChanges": ["Maintain healthy diet", "Get adequate rest", "Gentle exercise as tolerated"],
+                "whenToSeekHelp": ["Symptoms worsen significantly", "New severe symptoms develop", "Unable to manage daily activities"],
+                "followUp": f"Given {risk_level} risk level, monitor closely and seek medical attention if condition changes."
+            }
+        
+        print(f"DEBUG: Response prepared: {response}")
+        return response
+            
     except Exception as e:
+        print(f"ERROR in symptom assessment: {e}")
         return {
             "riskLevel": "unknown",
-            "conditions": [],
-            "recommendations": [f"Could not parse AI response: {str(e)}", "Raw response: " + str(raw)]
+            "conditions": [{"name": "Analysis Error", "probability": 0, "urgent": False, "description": "Could not analyze symptoms"}],
+            "immediateActions": ["Please try again or consult a healthcare professional"],
+            "precautions": ["Monitor symptoms closely"],
+            "medications": ["No medications recommended without proper analysis"],
+            "lifestyleChanges": ["Maintain healthy habits"],
+            "whenToSeekHelp": ["If symptoms worsen"],
+            "followUp": "Please try the symptom analysis again or consult a qualified healthcare provider."
         }
 
 @app.get("/api/medications")

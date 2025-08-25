@@ -79,7 +79,7 @@ function Dashboard() {
                 <div className="lg:col-span-2">
                   <HealthMetrics />
                 </div>
-                <MedicationReminders />
+                <MedicationReminders showAddButton={false} />
                 <HealthInsights />
               </div>
             </div>
@@ -108,7 +108,7 @@ function Dashboard() {
                 <div className="lg:col-span-2">
                   <HealthMetrics />
                 </div>
-                <MedicationReminders />
+                <MedicationReminders showAddButton={false} />
                 <HealthInsights />
               </div>
             </div>
