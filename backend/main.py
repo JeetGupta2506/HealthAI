@@ -5,11 +5,11 @@ from typing import Optional, List
 import os
 import json
 from datetime import datetime, timezone
-# Remove database imports for now
-# from sqlalchemy.orm import Session
-# from database import get_db, create_tables
-# from models import User, ChatSession, ChatMessage, Medication
-# from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
+# Enable database imports
+from sqlalchemy.orm import Session
+from database import get_db, create_tables
+from models import User, ChatSession, ChatMessage, Medication
+from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
@@ -88,6 +88,15 @@ def format_response(text: str) -> str:
     return text.strip()
 
 app = FastAPI()
+
+# Create database tables on startup
+@app.on_event("startup")
+async def startup_event():
+    try:
+        create_tables()
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -273,102 +282,107 @@ def health_check():
 async def signup(request: SignupRequest):
     """User signup endpoint"""
     try:
+        db: Session = next(get_db())
         # Check if user already exists
-        # existing_user = db.query(User).filter(User.username == request.username).first()
-        # if existing_user:
-        #     raise HTTPException(status_code=400, detail="Username already registered")
+        existing_user = db.query(User).filter(User.username == request.username).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already registered")
         
-        # existing_email = db.query(User).filter(User.email == request.email).first()
-        # if existing_email:
-        #     raise HTTPException(status_code=400, detail="Email already registered")
+        existing_email = db.query(User).filter(User.email == request.email).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email already registered")
         
-        # # Create new user with hashed password
-        # password_hash = get_password_hash(request.password)
-        # new_user = User(username=request.username, email=request.email, password_hash=password_hash)
-        # db.add(new_user)
-        # db.commit()
-        # db.refresh(new_user)
+        # Create new user with hashed password
+        password_hash = get_password_hash(request.password)
+        new_user = User(username=request.username, email=request.email, password_hash=password_hash)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
         
-        return {"success": True, "message": "User created successfully", "user_id": 1} # Placeholder user_id
+        return {"success": True, "message": "User created successfully", "user_id": new_user.id}
     except Exception as e:
-        # db.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
 @app.post("/api/signin")
 async def signin(request: SigninRequest):
     """User signin endpoint"""
-    # user = authenticate_user(db, request.username, request.password)
-    # if not user:
-    #     raise HTTPException(
-    #         status_code=401,
-    #         detail="Incorrect username or password"
-    #     )
+    db: Session = next(get_db())
+    user = authenticate_user(db, request.username, request.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password"
+        )
     
-    # # Create access token
-    # access_token = create_access_token(
-    #     data={"sub": str(user.id), "username": user.username}
-    # )
+    # Create access token
+    access_token = create_access_token(
+        data={"sub": str(user.id), "username": user.username}
+    )
     
     return {
-        "access_token": "dummy_token", # Placeholder token
+        "access_token": access_token,
         "token_type": "bearer",
-        "user_id": 1, # Placeholder user_id
-        "username": request.username
+        "user_id": user.id,
+        "username": user.username
     }
 
 @app.post("/api/users")
 async def create_user(username: str, email: str):
     """Create a test user for development (legacy endpoint)"""
     try:
+        db: Session = next(get_db())
         # Check if user already exists
-        # existing_user = db.query(User).filter(User.username == username).first()
-        # if existing_user:
-        #     return {"success": True, "user": existing_user, "message": "User already exists"}
+        existing_user = db.query(User).filter(User.username == username).first()
+        if existing_user:
+            return {"success": True, "user": existing_user, "message": "User already exists"}
         
-        # # Create new user with default password
-        # password_hash = get_password_hash("password123")  # Default password
-        # new_user = User(username=username, email=email, password_hash=password_hash)
-        # db.add(new_user)
-        # db.commit()
-        # db.refresh(new_user)
+        # Create new user with default password
+        password_hash = get_password_hash("password123")  # Default password
+        new_user = User(username=username, email=email, password_hash=password_hash)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
         
-        return {"success": True, "user": {"id": 1, "username": username, "email": email}, "message": "User created successfully"}
+        return {"success": True, "user": {"id": new_user.id, "username": username, "email": email}, "message": "User created successfully"}
     except Exception as e:
-        # db.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
 @app.get("/api/users")
 async def get_users():
     """Get all users for testing"""
-    # users = db.query(User).all()
-    return {"users": []} # Placeholder users
+    db: Session = next(get_db())
+    users = db.query(User).all()
+    return {"users": [{"id": u.id, "username": u.username, "email": u.email} for u in users]}
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     print("DEBUG /chat received:", request)
     
     try:
+        db: Session = next(get_db())
         # Create a new chat session first
         user_id = request.user_id or 1  # Default to user 1 for testing
         session_id = f"session_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         
         # Create chat session
-        # chat_session = ChatSession(
-        #     user_id=user_id,
-        #     session_id=session_id,
-        #     agent_type=request.agent_type
-        # )
-        # db.add(chat_session)
-        # db.flush()  # Get the ID without committing yet
+        chat_session = ChatSession(
+            user_id=user_id,
+            session_id=session_id,
+            agent_type=request.agent_type
+        )
+        db.add(chat_session)
+        db.flush()  # Get the ID without committing yet
         
         # Store user message
-        # user_message = ChatMessage(
-        #     session_id=chat_session.id,  # Use the actual session ID
-        #     message_type="user",
-        #     content=request.message,
-        #     message_metadata={"agent_type": request.agent_type}
-        # )
-        # db.add(user_message)
+        user_message = ChatMessage(
+            session_id=chat_session.id,  # Use the actual session ID
+            message_type="user",
+            content=request.message,
+            message_metadata={"agent_type": request.agent_type}
+        )
+        db.add(user_message)
         
         # Generate AI response
         state = {"agent_type": request.agent_type, "message": request.message, "response_style": request.response_style}
@@ -381,27 +395,27 @@ async def chat_endpoint(request: ChatRequest):
                 response_text = format_response(raw_response)
             
             # Store AI response
-            # ai_message = ChatMessage(
-            #     session_id=chat_session.id,  # Use the actual session ID
-            #     message_type="assistant",
-            #     content=response_text,
-            #     message_metadata={"agent_type": request.agent_type}
-            # )
-            # db.add(ai_message)
+            ai_message = ChatMessage(
+                session_id=chat_session.id,  # Use the actual session ID
+                message_type="assistant",
+                content=response_text,
+                message_metadata={"agent_type": request.agent_type}
+            )
+            db.add(ai_message)
             
             # Commit everything to database
-            # db.commit()
+            db.commit()
             
             print(f"DEBUG: Chat session {session_id} created, messages stored")
             return ChatResponse(response=response_text, session_id=session_id)
 
         except Exception as e:
-            # db.rollback()
+            db.rollback()
             print("ERROR in AI response generation:", e)
             raise HTTPException(status_code=500, detail=f"AI response error: {str(e)}")
 
     except Exception as e:
-        # db.rollback()
+        db.rollback()
         print("ERROR in /chat:", e)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
@@ -452,60 +466,64 @@ async def assess_symptoms(request: SymptomAssessmentRequest):
 @app.get("/api/medications")
 async def get_medications(user_id: Optional[int] = None):
     """Get all medications for a user"""
-    # For now, return medications from JSON file
-    medications = load_medications()
-    return {"medications": medications}
+    db: Session = next(get_db())
+    medications = db.query(Medication).filter(Medication.user_id == user_id).all()
+    return {"medications": [{"id": med.id, "name": med.name, "dosage": med.dosage, "frequency": med.frequency, "prescribedBy": med.prescribedBy, "startDate": med.startDate, "endDate": med.endDate, "totalDoses": med.totalDoses, "instructions": med.instructions} for med in medications]}
 
 @app.post("/api/medications")
 async def create_medication(medication: MedicationCreate, user_id: Optional[int] = 1):
     """Create a new medication"""
-    medications = load_medications()
+    db: Session = next(get_db())
+    medications = db.query(Medication).filter(Medication.user_id == user_id).all()
     
     # Generate unique ID
     new_id = str(len(medications) + 1)
-    while any(med['id'] == new_id for med in medications):
+    while any(med.id == new_id for med in medications):
         new_id = str(int(new_id) + 1)
     
     # Convert the medication data to dict and handle datetime conversion
     med_data = medication.dict()
     
-    new_medication = {
-        "id": new_id,
+    new_medication = Medication(
+        id=new_id,
+        user_id=user_id,
         **med_data
-    }
+    )
     
-    medications.append(new_medication)
+    db.add(new_medication)
+    db.commit()
+    db.refresh(new_medication)
     
-    if save_medications(medications):
-        return {"success": True, "medication": new_medication}
-    else:
-        return {"success": False, "error": "Failed to save medication"}
+    return {"success": True, "medication": {"id": new_medication.id, "name": new_medication.name, "dosage": new_medication.dosage, "frequency": new_medication.frequency, "prescribedBy": new_medication.prescribedBy, "startDate": new_medication.startDate, "endDate": new_medication.endDate, "totalDoses": new_medication.totalDoses, "instructions": new_medication.instructions}}
 
 @app.delete("/api/medications/{medication_id}")
 async def delete_medication(medication_id: str, user_id: Optional[int] = 1):
     """Delete a medication"""
-    medications = load_medications()
+    db: Session = next(get_db())
     
     # Find and remove the medication
-    medications = [med for med in medications if med['id'] != medication_id]
-    
-    if save_medications(medications):
+    medication_to_delete = db.query(Medication).filter(Medication.id == medication_id, Medication.user_id == user_id).first()
+    if medication_to_delete:
+        db.delete(medication_to_delete)
+        db.commit()
         return {"success": True, "message": "Medication deleted successfully"}
     else:
-        raise HTTPException(status_code=500, detail="Failed to delete medication")
+        raise HTTPException(status_code=404, detail="Medication not found")
 
 # Add new endpoints for chat history
 @app.get("/api/chat-history/{user_id}")
 async def get_chat_history(user_id: int):
     """Get chat history for a user"""
-    # sessions = db.query(ChatSession).filter(ChatSession.user_id == user_id).all()
-    return {"sessions": []} # Placeholder sessions
+    db: Session = next(get_db())
+    sessions = db.query(ChatSession).filter(ChatSession.user_id == user_id).all()
+    return {"sessions": [{"id": s.id, "session_id": s.session_id, "agent_type": s.agent_type, "created_at": s.created_at} for s in sessions]}
 
 @app.get("/api/chat-messages/{session_id}")
-async def get_chat_messages(session_id: int):
+async def get_chat_messages(session_id: str):
     """Get messages for a specific chat session"""
-    # messages = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
-    return {"messages": []} # Placeholder messages
+    db: Session = next(get_db())
+    messages = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()
+    return {"messages": [{"id": m.id, "message_type": m.message_type, "content": m.content, "message_metadata": m.message_metadata, "created_at": m.created_at} for m in messages]}
 
 if __name__ == "__main__":
     import uvicorn

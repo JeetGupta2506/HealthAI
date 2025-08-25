@@ -5,11 +5,16 @@ import os
 
 load_dotenv()
 
-# Database connection string
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://username:password@localhost:5432/healthchatbot"
-)
+# Database connection string - supports both local and team shared database
+# For team development, set TEAM_DATABASE_URL in .env file
+# For local development, set LOCAL_DATABASE_URL or use default
+TEAM_DATABASE_URL = os.getenv("TEAM_DATABASE_URL")
+LOCAL_DATABASE_URL = os.getenv("LOCAL_DATABASE_URL", "postgresql://username:password@localhost:5432/healthchatbot")
+
+# Use team database if available, otherwise fall back to local
+DATABASE_URL = TEAM_DATABASE_URL or LOCAL_DATABASE_URL
+
+print(f"Connecting to database: {DATABASE_URL}")
 
 # Create engine
 engine = create_engine(DATABASE_URL)

@@ -34,25 +34,41 @@ export function SignInPage() {
     setIsLoading(true);
     setError(null);
     
-    // Simulate API call for authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Simple validation - in real app, this would be an API call
-      if (formData.email === 'demo@healthai.com' && formData.password === 'password123') {
+    try {
+      // Real API call to backend
+      const response = await fetch('http://localhost:8000/api/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.email, // Using email as username for now
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
         // Success - login user and navigate to dashboard
         const userData = {
-          id: 1,
+          id: data.user_id,
           email: formData.email,
-          username: 'demo_user'
+          username: data.username,
+          access_token: data.access_token
         };
         login(userData);
         navigate('/dashboard');
       } else {
-        // Show error
-        setError('Invalid email or password. Please try again.');
+        // Show error from backend
+        setError(data.detail || 'Login failed. Please try again.');
       }
-    }, 1500);
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: keyof SignInForm, value: string) => {
