@@ -80,7 +80,7 @@ function Dashboard() {
                   <HealthMetrics />
                 </div>
                 <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
-                  <MedicationReminders />
+                  <MedicationReminders showAddButton={false} />
                 </div>
                 <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
                   <HealthInsights />
@@ -113,7 +113,7 @@ function Dashboard() {
                   <HealthMetrics />
                 </div>
                 <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
-                  <MedicationReminders />
+                  <MedicationReminders showAddButton={false} />
                 </div>
                 <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
                   <HealthInsights />
