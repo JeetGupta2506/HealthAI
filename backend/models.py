@@ -48,15 +48,16 @@ class ChatMessage(Base):
 class Medication(Base):
     __tablename__ = "medications"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True)  # Changed to String to match frontend
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(100), nullable=False)
     dosage = Column(String(50), nullable=False)
     frequency = Column(String(50), nullable=False)
-    time_to_take = Column(ARRAY(String), nullable=False)
-    prescribed_by = Column(String(100), nullable=False)
-    start_date = Column(Date, nullable=False)
-    instructions = Column(Text)
+    prescribedBy = Column(String(100), nullable=False)  # Changed from prescribed_by
+    startDate = Column(DateTime, nullable=False)  # Changed from start_date
+    endDate = Column(DateTime, nullable=True)  # Added endDate field
+    totalDoses = Column(Integer, nullable=True)  # Added totalDoses field
+    instructions = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships

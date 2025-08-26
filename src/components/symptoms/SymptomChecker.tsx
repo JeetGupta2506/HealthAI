@@ -303,6 +303,51 @@ export function SymptomChecker() {
     return 'text-green-600 dark:text-green-400';
   };
 
+  // Helper function to parse markdown text, handling bold and other markdown elements
+  const parseMarkdownText = (text: string) => {
+    // Use regex to find all **text** patterns and replace them with JSX elements
+    const parts = [];
+    let lastIndex = 0;
+    const regex = /\*\*(.*?)\*\*/g;
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push(
+          <span key={`text-${lastIndex}`}>
+            {text.slice(lastIndex, match.index)}
+          </span>
+        );
+      }
+      
+      // Add the bold text
+      parts.push(
+        <strong key={`bold-${match.index}`} className="font-semibold text-gray-800 dark:text-gray-100">
+          {match[1]}
+        </strong>
+      );
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining text after the last match
+    if (lastIndex < text.length) {
+      parts.push(
+        <span key={`text-${lastIndex}`}>
+          {text.slice(lastIndex)}
+        </span>
+      );
+    }
+    
+    // If no matches were found, return the original text
+    if (parts.length === 0) {
+      return <span>{text}</span>;
+    }
+    
+    return <>{parts}</>;
+  };
+
   return (
     <div className="h-full bg-gradient-to-br from-gray-50 via-blue-50/20 to-emerald-50/20 dark:from-gray-900 dark:via-blue-900/10 dark:to-emerald-900/10">
       {/* Header */}
@@ -311,19 +356,19 @@ export function SymptomChecker() {
         <p className="text-gray-600 dark:text-gray-300 mt-1">Select your symptoms to get AI-powered health insights and recommendations</p>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col p-3 min-h-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0 h-full">
+             {/* Main Content */}
+       <div className="flex-1 flex flex-col p-6 min-h-0">
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0 h-full">
           {/* Left Side - Symptom Selection */}
           <div className="min-h-0 h-full">
             {/* Search Bar and Common Symptoms Combined */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] h-full flex flex-col min-h-0">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex-shrink-0">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] h-full flex flex-col min-h-0">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 flex-shrink-0">
                 Search & Select Symptoms
               </h3>
               
               {/* Search Bar */}
-              <div className="relative mb-4 flex-shrink-0">
+              <div className="relative mb-6 flex-shrink-0">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
@@ -334,9 +379,9 @@ export function SymptomChecker() {
                 />
               </div>
               
-              {/* Search Results */}
-              {filteredSymptoms.length > 0 && (
-                <div className="max-h-24 overflow-y-auto space-y-1 mb-4 flex-shrink-0">
+                             {/* Search Results */}
+               {filteredSymptoms.length > 0 && (
+                 <div className="max-h-24 overflow-y-auto space-y-1 mb-6 flex-shrink-0">
                   {filteredSymptoms.map((symptom) => (
                     <Button
                       key={symptom}
@@ -355,22 +400,22 @@ export function SymptomChecker() {
               )}
 
 
-              {/* Common Symptoms */}
-              <div className="flex-1 overflow-y-auto min-h-0">
-                <h4 className="text-md font-medium text-gray-700 dark:text-gray-200 mb-3">
-                  Common Symptoms
-                </h4>
-                <div className="flex flex-wrap gap-2">
+                             {/* Common Symptoms */}
+               <div className="flex-1 overflow-y-auto min-h-0">
+                 <h4 className="text-md font-medium text-gray-700 dark:text-gray-200 mb-4">
+                   Common Symptoms
+                 </h4>
+                 <div className="flex flex-wrap gap-2">
                   {commonSymptoms.map((symptom) => (
-                    <Button
-                      key={symptom}
-                      variant={selectedSymptoms.some(s => s.name === symptom) ? 'primary' : 'outline'}
-                      onClick={() => handleSymptomToggle(symptom)}
-                      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-md ${selectedSymptoms.some(s => s.name === symptom)
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-500 hover:bg-gray-100 hover:text-black dark:hover:bg-gray-500'
-                        }`}
-                    >
+                                         <Button
+                       key={symptom}
+                       variant={selectedSymptoms.some(s => s.name === symptom) ? 'primary' : 'outline'}
+                       onClick={() => handleSymptomToggle(symptom)}
+                       className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-md ${selectedSymptoms.some(s => s.name === symptom)
+                           ? 'bg-blue-600 text-white shadow-md'
+                           : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-500 hover:bg-gray-100 hover:text-black dark:hover:bg-gray-500'
+                         }`}
+                     >
                       {symptom}
                     </Button>
                   ))}
@@ -378,8 +423,8 @@ export function SymptomChecker() {
               </div>
 
 
-              {/* Action Buttons - Now inside the container */}
-              <div className="flex gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
+                             {/* Action Buttons - Now inside the container */}
+               <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600 flex-shrink-0">
                 <Button
                   onClick={analyzeSymptoms}
                   disabled={selectedSymptoms.length === 0 || isAnalyzing}
@@ -413,7 +458,7 @@ export function SymptomChecker() {
           {/* Right Side - Analysis Results */}
           <div className="min-h-0 h-full">
             {/* Combined Container for Selected Symptoms and AI Assessment */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] h-full flex flex-col min-h-0">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] h-full flex flex-col min-h-0">
 
               {isAnalyzing ? (
                 <div className="text-center py-8 flex-1 flex items-center justify-center min-h-0">
@@ -429,16 +474,54 @@ export function SymptomChecker() {
                 </div>
               ) : analysis ? (
                 <div className="flex-1 overflow-y-auto min-h-0">
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="w-5 h-5 text-yellow-500 mt-1 flex-shrink-0" />
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-800 dark:text-gray-100 mb-2 text-base">
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-3 text-lg">
                           AI Assessment
                         </h4>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                          {analysis}
-                        </p>
+                        <div className="prose prose-sm max-w-none text-gray-600 dark:text-gray-300 leading-relaxed">
+                          {analysis.split('\n').map((line, index) => {
+                            // Handle headers (##)
+                            if (line.startsWith('## ')) {
+                              const headerText = line.replace('## ', '');
+                              return (
+                                <h3 key={index} className="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-4 mb-2">
+                                  {headerText}
+                                </h3>
+                              );
+                            }
+                            
+                            // Handle bullet points
+                            if (line.startsWith('• ')) {
+                              const bulletText = line.replace('• ', '');
+                              return (
+                                <div key={index} className="flex items-start gap-2 mb-2">
+                                  <span className="text-blue-500 text-lg mt-0.5">•</span>
+                                  <span>{parseMarkdownText(bulletText)}</span>
+                                </div>
+                              );
+                            }
+                            
+                            // Handle separator lines
+                            if (line.startsWith('---')) {
+                              return <hr key={index} className="my-4 border-gray-300 dark:border-gray-600" />;
+                            }
+                            
+                            // Handle empty lines
+                            if (line.trim() === '') {
+                              return <div key={index} className="h-2" />;
+                            }
+                            
+                            // Regular text with markdown parsing
+                            return (
+                              <p key={index} className="mb-2">
+                                {parseMarkdownText(line)}
+                              </p>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
