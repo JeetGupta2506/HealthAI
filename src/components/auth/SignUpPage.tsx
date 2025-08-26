@@ -129,6 +129,9 @@ export function SignUpPage() {
             <p className="text-gray-600 dark:text-gray-300">
               Join HealthAI and start your personalized health journey
             </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Your full name will be used as your username for login
+            </p>
           </div>
 
           {/* Sign Up Form */}

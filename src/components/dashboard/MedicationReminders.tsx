@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 
 import { Button } from '../ui/Button';
 import { Medication } from '../../types/health';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AddMedicationForm {
   name: string;
@@ -23,6 +24,7 @@ interface MedicationRemindersProps {
 export function MedicationReminders({ showAddButton = true }: MedicationRemindersProps) {
   console.log('MedicationReminders component rendering');
   
+  const { user } = useAuth();  // Get user from auth context
   const [medications, setMedications] = useState<Medication[]>([]);
   const [dosesTaken, setDosesTaken] = useState<Record<string, number>>({});
   const [showAddForm, setShowAddForm] = useState(false);
@@ -72,10 +74,32 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
 
   const fetchMedications = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/medications');
+      console.log('Fetching medications - user state:', user);
+      console.log('Access token available:', !!user?.access_token);
+      
+      if (!user?.access_token) {
+        console.error('No access token available for fetching medications');
+        return;
+      }
+
+      console.log('Making request to /api/medications with token:', `${user.access_token.substring(0, 20)}...`);
+      
+      const response = await fetch('http://localhost:8000/api/medications', {
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Fetch medications response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Medications fetched successfully:', data);
         setMedications(data.medications || []);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to fetch medications:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching medications:', error);
@@ -99,21 +123,39 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
 
   const addMedication = async () => {
     try {
+      console.log('Current user state:', user);
+      console.log('Access token available:', !!user?.access_token);
+      console.log('Token value:', user?.access_token ? `${user.access_token.substring(0, 20)}...` : 'None');
+      
+      if (!user?.access_token) {
+        console.error('No access token available');
+        return;
+      }
+
       // Calculate total doses automatically
       const totalDoses = calculateTotalDoses(formData.frequency, formData.startDate, formData.endDate);
+      
+      const requestBody = {
+        ...formData,
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString(),
+        totalDoses
+      };
+      
+      console.log('Sending request with body:', requestBody);
+      console.log('Authorization header:', `Bearer ${user.access_token.substring(0, 20)}...`);
       
       const response = await fetch('http://localhost:8000/api/medications', {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${user.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString(),
-          totalDoses
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
       if (response.ok) {
         const data = await response.json();
@@ -122,6 +164,9 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
           setShowAddForm(false);
           resetForm();
         }
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to add medication:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error adding medication:', error);
@@ -213,23 +258,31 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
 
   const deleteMedication = async (medId: string) => {
     try {
+      if (!user?.access_token) {
+        console.error('No access token available');
+        return;
+      }
+
       const response = await fetch(`http://localhost:8000/api/medications/${medId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user.access_token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
           setMedications(prev => prev.filter(med => med.id !== medId));
-          // Also remove from dosesTaken
-          setDosesTaken(prev => {
-            const newDoses = { ...prev };
-            delete newDoses[medId];
-            // Immediately save to localStorage
-            localStorage.setItem('medicationDosesTaken', JSON.stringify(newDoses));
-            return newDoses;
-          });
+          // Remove doses taken for this medication
+          const newDoses = { ...dosesTaken };
+          delete newDoses[medId];
+          setDosesTaken(newDoses);
+          localStorage.setItem('medicationDosesTaken', JSON.stringify(newDoses));
         }
+      } else {
+        console.error('Failed to delete medication:', response.status);
       }
     } catch (error) {
       console.error('Error deleting medication:', error);

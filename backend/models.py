@@ -48,15 +48,15 @@ class ChatMessage(Base):
 class Medication(Base):
     __tablename__ = "medications"
     
-    id = Column(String, primary_key=True, index=True)  # Changed to String to match frontend
+    id = Column(String(50), primary_key=True, index=True)  # Changed to String to match API
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(100), nullable=False)
     dosage = Column(String(50), nullable=False)
     frequency = Column(String(50), nullable=False)
     prescribedBy = Column(String(100), nullable=False)  # Changed from prescribed_by
-    startDate = Column(DateTime, nullable=False)  # Changed from start_date
-    endDate = Column(DateTime, nullable=True)  # Added endDate field
-    totalDoses = Column(Integer, nullable=True)  # Added totalDoses field
+    startDate = Column(DateTime, nullable=False)        # Changed from start_date and to DateTime
+    endDate = Column(DateTime, nullable=True)           # Added missing field
+    totalDoses = Column(Integer, nullable=True)         # Added missing field
     instructions = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     

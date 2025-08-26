@@ -93,10 +93,18 @@ app = FastAPI()
 @app.on_event("startup")
 async def startup_event():
     try:
-        create_tables()
-        print("Database tables created successfully")
+        from database import migrate_database
+        migrate_database()
+        print("Database migration completed successfully")
     except Exception as e:
-        print(f"Error creating database tables: {e}")
+        print(f"Error during database migration: {e}")
+        # Fallback to regular table creation
+        try:
+            from database import create_tables
+            create_tables()
+            print("Database tables created successfully (fallback)")
+        except Exception as e2:
+            print(f"Error creating database tables: {e2}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -363,7 +371,8 @@ async def signin(request: SigninRequest):
         "access_token": access_token,
         "token_type": "bearer",
         "user_id": user.id,
-        "username": user.username
+        "username": user.username,
+        "email": user.email
     }
 
 @app.post("/api/users")
@@ -651,17 +660,17 @@ async def assess_symptoms(request: SymptomAssessmentRequest):
         }
 
 @app.get("/api/medications")
-async def get_medications(user_id: Optional[int] = None):
-    """Get all medications for a user"""
+async def get_medications(current_user: User = Depends(get_current_user)):
+    """Get all medications for the authenticated user"""
     db: Session = next(get_db())
-    medications = db.query(Medication).filter(Medication.user_id == user_id).all()
+    medications = db.query(Medication).filter(Medication.user_id == current_user.id).all()
     return {"medications": [{"id": med.id, "name": med.name, "dosage": med.dosage, "frequency": med.frequency, "prescribedBy": med.prescribedBy, "startDate": med.startDate, "endDate": med.endDate, "totalDoses": med.totalDoses, "instructions": med.instructions} for med in medications]}
 
 @app.post("/api/medications")
-async def create_medication(medication: MedicationCreate, user_id: Optional[int] = 1):
-    """Create a new medication"""
+async def create_medication(medication: MedicationCreate, current_user: User = Depends(get_current_user)):
+    """Create a new medication for the authenticated user"""
     db: Session = next(get_db())
-    medications = db.query(Medication).filter(Medication.user_id == user_id).all()
+    medications = db.query(Medication).filter(Medication.user_id == current_user.id).all()
     
     # Generate unique ID
     new_id = str(len(medications) + 1)
@@ -673,7 +682,7 @@ async def create_medication(medication: MedicationCreate, user_id: Optional[int]
     
     new_medication = Medication(
         id=new_id,
-        user_id=user_id,
+        user_id=current_user.id,
         **med_data
     )
     
@@ -684,12 +693,12 @@ async def create_medication(medication: MedicationCreate, user_id: Optional[int]
     return {"success": True, "medication": {"id": new_medication.id, "name": new_medication.name, "dosage": new_medication.dosage, "frequency": new_medication.frequency, "prescribedBy": new_medication.prescribedBy, "startDate": new_medication.startDate, "endDate": new_medication.endDate, "totalDoses": new_medication.totalDoses, "instructions": new_medication.instructions}}
 
 @app.delete("/api/medications/{medication_id}")
-async def delete_medication(medication_id: str, user_id: Optional[int] = 1):
-    """Delete a medication"""
+async def delete_medication(medication_id: str, current_user: User = Depends(get_current_user)):
+    """Delete a medication for the authenticated user"""
     db: Session = next(get_db())
     
     # Find and remove the medication
-    medication_to_delete = db.query(Medication).filter(Medication.id == medication_id, Medication.user_id == user_id).first()
+    medication_to_delete = db.query(Medication).filter(Medication.id == medication_id, Medication.user_id == current_user.id).first()
     if medication_to_delete:
         db.delete(medication_to_delete)
         db.commit()

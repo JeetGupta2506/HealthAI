@@ -6,8 +6,6 @@ TEAM_DATABASE_URL=postgresql://postgres:gCvpzpJKugrdEbbZfgSLXhYsLmZqWPeF@yamabik
 # Local Database (fallback for offline development)
 LOCAL_DATABASE_URL=postgresql://postgres:password123@localhost:5432/healthchatbot
 
-# Google AI API Key (if you have one)
-GOOGLE_API_KEY=your_google_api_key_here
 
 # JWT Secret Key (change this in production)
 SECRET_KEY=your-secret-key-change-this-in-production
