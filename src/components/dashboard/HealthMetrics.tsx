@@ -138,7 +138,7 @@ export function HealthMetrics() {
     }
 
     return (
-      <div className="h-full bg-white dark:bg-gray-800">
+      <div className="h-full bg-white dark:bg-gray-800 p-4">
         <div className="border-b border-gray-200 dark:border-gray-700 px-8 py-6">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Health Metrics</h2>
           <p className="text-gray-600 dark:text-gray-300 mt-1">Real-time health data overview</p>
