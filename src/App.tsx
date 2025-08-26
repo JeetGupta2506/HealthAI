@@ -74,13 +74,17 @@ function Dashboard() {
       switch (activeTab) {
         case 'dashboard':
           return (
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="lg:col-span-2">
+            <div className="p-8 bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/30 dark:from-gray-900 dark:via-blue-900/20 dark:to-emerald-900/20">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50">
+                <div className="lg:col-span-2 transition-all duration-300 ease-in-out hover:scale-[1.02]">
                   <HealthMetrics />
                 </div>
-                <MedicationReminders />
-                <HealthInsights />
+                <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
+                  <MedicationReminders />
+                </div>
+                <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
+                  <HealthInsights />
+                </div>
               </div>
             </div>
           );
@@ -92,24 +96,28 @@ function Dashboard() {
           return <MedicationReminders />;
         case 'insights':
           return <HealthInsights />;
-        case 'reports':
-          return (
-            <div className="h-full bg-white dark:bg-gray-800 flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Health Reports</h2>
-                <p className="text-gray-600 dark:text-gray-300">Detailed health reports and analytics coming soon...</p>
-              </div>
-            </div>
-          );
+                 case 'reports':
+           return (
+             <div className="h-full bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 flex items-center justify-center rounded-2xl shadow-xl border-2 border-gradient-to-r from-purple-200 to-pink-200 dark:from-purple-700 dark:to-pink-700">
+               <div className="text-center p-8 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-lg backdrop-blur-sm">
+                 <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Health Reports</h2>
+                 <p className="text-gray-600 dark:text-gray-300 text-lg">Detailed health reports and analytics coming soon...</p>
+               </div>
+             </div>
+           );
         default:
           return (
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="lg:col-span-2">
+            <div className="p-8 bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/30 dark:from-gray-900 dark:via-blue-900/20 dark:to-emerald-900/20">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="lg:col-span-2 transition-all duration-300 ease-in-out hover:scale-[1.02]">
                   <HealthMetrics />
                 </div>
-                <MedicationReminders />
-                <HealthInsights />
+                <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
+                  <MedicationReminders />
+                </div>
+                <div className="transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1">
+                  <HealthInsights />
+                </div>
               </div>
             </div>
           );
@@ -127,22 +135,31 @@ function Dashboard() {
   console.log('Dashboard render - activeTab:', activeTab, 'loading:', loading, 'error:', error, 'healthStatus:', healthStatus);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-emerald-50/20 dark:from-gray-900 dark:via-blue-900/10 dark:to-emerald-900/10 transition-all duration-300">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 overflow-y-auto bg-transparent">
           {loading ? (
-            <div className="p-6 text-center">
-              <div className="text-gray-500">Loading dashboard...</div>
-              <div className="text-sm text-gray-400 mt-2">Checking backend connection...</div>
+            <div className="p-8 text-center">
+              <div className="inline-block p-6 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-lg backdrop-blur-sm border border-gray-200 dark:border-gray-700">
+                <div className="text-gray-600 dark:text-gray-300 text-lg font-medium mb-2">Loading dashboard...</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Checking backend connection...</div>
+                <div className="flex justify-center mt-4 gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
             </div>
           ) : error && healthStatus !== 'unavailable' && healthStatus !== 'timeout' ? (
-            <div className="p-6 text-center text-red-500">
-              <div>Error: {error}</div>
+            <div className="p-8 text-center">
+              <div className="inline-block p-6 bg-red-50/80 dark:bg-red-900/20 rounded-2xl shadow-lg backdrop-blur-sm border-2 border-red-200 dark:border-red-700">
+                <div className="text-red-600 dark:text-red-400 text-lg font-medium">Error: {error}</div>
+              </div>
             </div>
           ) : (
             <>

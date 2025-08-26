@@ -103,7 +103,7 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-100 via-indigo-50 to-emerald-100 dark:from-blue-900 dark:via-indigo-900 dark:to-emerald-900 transition-colors duration-200">
+      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-100 via-indigo-50 to-emerald-100 dark:from-gray-950 dark:via-blue-950/40 dark:to-emerald-950/60 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">

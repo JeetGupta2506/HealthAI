@@ -75,30 +75,30 @@ export function HealthInsights() {
   console.log('HealthInsights component rendering');
   
   return (
-    <div className="h-full bg-white dark:bg-gray-800">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Health Insights</h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Personalized recommendations from your health data</p>
+    <div className="h-full bg-gradient-to-br from-gray-50 via-emerald-50/20 to-teal-50/20 dark:from-gray-900 dark:via-emerald-900/10 dark:to-teal-900/10 p-4 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+      <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-t-2xl">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">AI Health Insights</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-1 text-xs">Personalized recommendations from your health data</p>
       </div>
-      <div className="p-6">
-        <div className="space-y-4">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
-            <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">💡 Wellness Tip</h3>
-            <p className="text-blue-700 dark:text-blue-300 text-sm">
+      <div className="px-6 py-4">
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-blue-900/40 dark:to-indigo-900/40 p-6 rounded-2xl border-2 border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm">
+            <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-3 text-lg">💡 Wellness Tip</h3>
+            <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
               Based on your current metrics, try to maintain consistent sleep patterns and stay hydrated throughout the day.
             </p>
           </div>
           
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800">
-            <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">🎯 Goal Setting</h3>
-            <p className="text-green-700 dark:text-green-300 text-sm">
+          <div className="bg-gradient-to-r from-emerald-50/90 to-green-50/90 dark:from-emerald-900/40 dark:to-green-900/40 p-6 rounded-2xl border-2 border-emerald-200 dark:border-green-700 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm">
+            <h3 className="font-semibold text-green-800 dark:text-green-200 mb-3 text-lg">🎯 Goal Setting</h3>
+            <p className="text-green-700 dark:text-green-300 text-sm leading-relaxed">
               Set realistic health goals and track your progress. Small, consistent changes lead to lasting improvements.
             </p>
           </div>
           
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-lg border border-amber-100 dark:border-amber-800">
-            <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">⚠️ Attention</h3>
-            <p className="text-amber-700 dark:text-amber-300 text-sm">
+          <div className="bg-gradient-to-r from-amber-50/90 to-orange-50/90 dark:from-amber-900/40 dark:to-orange-900/40 p-6 rounded-2xl border-2 border-amber-200 dark:border-amber-700 shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm">
+            <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-3 text-lg">⚠️ Attention</h3>
+            <p className="text-amber-700 dark:text-amber-300 text-sm leading-relaxed">
               Remember to consult healthcare professionals for medical advice. This app is for informational purposes only.
             </p>
           </div>

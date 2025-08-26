@@ -235,14 +235,14 @@ export function SymptomChecker() {
 }
 
   return (
-    <div className="h-full bg-white dark:bg-gray-800">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Symptom Checker</h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Get AI-powered health assessments based on your symptoms</p>
+    <div className="h-full bg-gradient-to-br from-gray-50 via-purple-50/20 to-pink-50/20 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 p-6 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+      <div className="border-b border-gray-200 dark:border-gray-700 px-8 py-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-t-2xl">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">AI Symptom Checker</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-2">Get AI-powered health assessments based on your symptoms</p>
       </div>
-      <div className="p-6 space-y-6">
+      <div className="px-8 py-6 space-y-6">
         {/* Step Indicator */}
-        <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div className="flex items-center gap-4 p-6 bg-white/80 dark:bg-gray-800/80 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg backdrop-blur-sm">
           <div className={`flex items-center gap-2 ${currentStep === 'symptoms' ? 'text-gray-600 dark:text-gray-400' : 'text-green-600 dark:text-green-400'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
               currentStep === 'symptoms' ? 'bg-gray-600 text-white' : 'bg-green-600 text-white'
@@ -283,7 +283,7 @@ export function SymptomChecker() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Type a symptom..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white/90 dark:bg-gray-700/90 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 shadow-sm hover:shadow-md transition-all duration-300"
                 />
               </div>
               
@@ -311,7 +311,7 @@ export function SymptomChecker() {
                   <button
                     key={symptom}
                     onClick={() => addSymptom(symptom)}
-                    className="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-white rounded-full transition-all duration-200 border border-gray-200 dark:border-gray-600 shadow-sm"
+                    className="px-4 py-2.5 text-sm bg-white/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-800 dark:hover:text-purple-200 rounded-xl transition-all duration-300 border-2 border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md hover:scale-105"
                   >
                     {symptom}
                   </button>
