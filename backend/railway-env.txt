@@ -1,0 +1,18 @@
+# Copy this content to a file named .env in the backend folder
+
+# Railway Database Connection
+TEAM_DATABASE_URL=postgresql://postgres:gCvpzpJKugrdEbbZfgSLXhYsLmZqWPeF@yamabiko.proxy.rlwy.net:11181/railway
+
+# Local Database (fallback for offline development)
+LOCAL_DATABASE_URL=postgresql://postgres:password123@localhost:5432/healthchatbot
+
+# Google AI API Key (if you have one)
+GOOGLE_API_KEY=your_google_api_key_here
+
+# JWT Secret Key (change this in production)
+SECRET_KEY=your-secret-key-change-this-in-production
+
+# Instructions:
+# 1. Create a file named .env in the backend folder
+# 2. Copy the above content into it
+# 3. Never commit .env files to git!
