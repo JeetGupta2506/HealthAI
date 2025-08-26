@@ -34,3 +34,22 @@ def get_db():
 def create_tables():
     from models import Base
     Base.metadata.create_all(bind=engine)
+
+# Handle database migrations
+def migrate_database():
+    from models import Base
+    from sqlalchemy import text
+    
+    # Drop and recreate medications table to handle schema changes
+    try:
+        with engine.connect() as conn:
+            # Drop existing medications table if it exists
+            conn.execute(text("DROP TABLE IF EXISTS medications CASCADE"))
+            conn.commit()
+            print("Dropped existing medications table")
+    except Exception as e:
+        print(f"Error dropping medications table: {e}")
+    
+    # Recreate all tables with new schema
+    Base.metadata.create_all(bind=engine)
+    print("Recreated database tables with new schema")

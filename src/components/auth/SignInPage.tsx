@@ -7,14 +7,15 @@ import {
   ArrowLeft, 
   Shield, 
   Mail,
-  Lock
+  Lock,
+  User
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { SimpleThemeToggle } from '../ui/ThemeToggle';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SignInForm {
-  email: string;
+  username: string;  // Changed from email to username
   password: string;
 }
 
@@ -22,7 +23,7 @@ export function SignInPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState<SignInForm>({
-    email: '',
+    username: '',  // Changed from email to username
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +43,7 @@ export function SignInPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: formData.email, // Using email as username for now
+          username: formData.username,  // Use username field directly
           password: formData.password
         })
       });
@@ -53,7 +54,7 @@ export function SignInPage() {
         // Success - login user and navigate to dashboard
         const userData = {
           id: data.user_id,
-          email: formData.email,
+          email: data.email || formData.username,  // Fallback to username if email not provided
           username: data.username,
           access_token: data.access_token
         };
@@ -77,7 +78,7 @@ export function SignInPage() {
     if (error) setError(null);
   };
 
-  const isFormValid = formData.email && formData.password;
+  const isFormValid = formData.username && formData.password;  // Changed from email to username
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200">
@@ -119,26 +120,29 @@ export function SignInPage() {
             <p className="text-gray-600 dark:text-gray-300">
               Sign in to continue your health journey
             </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Use the username you created during signup (your full name)
+            </p>
           </div>
 
           {/* Sign In Form */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
+              {/* Username */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email Address
+                  Username
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+                    <User className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange('username', e.target.value)}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors duration-200"
-                    placeholder="Enter your email"
+                    placeholder="Enter your username"
                     required
                   />
                 </div>
