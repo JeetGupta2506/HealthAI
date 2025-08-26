@@ -39,23 +39,43 @@ export function SignUpPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Handle sign up logic here
-      console.log('Sign up:', formData);
-      
-      // If all details are valid, login user and navigate to dashboard
-      if (isFormValid) {
+    try {
+      // Real API call to backend
+      const response = await fetch('http://localhost:8000/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.fullName,
+          email: formData.email,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success - login user and navigate to dashboard
         const userData = {
-          id: 1,
+          id: data.user_id,
           email: formData.email,
           username: formData.fullName
         };
         login(userData);
         navigate('/dashboard');
+      } else {
+        // Show error from backend
+        console.error('Signup failed:', data);
+        // You might want to show this error to the user
+        alert(data.detail || 'Signup failed. Please try again.');
       }
-    }, 2000);
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: keyof SignUpForm, value: string) => {
