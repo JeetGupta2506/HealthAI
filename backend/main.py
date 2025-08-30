@@ -670,20 +670,11 @@ async def get_medications(current_user: User = Depends(get_current_user)):
 async def create_medication(medication: MedicationCreate, current_user: User = Depends(get_current_user)):
     """Create a new medication for the authenticated user"""
     db: Session = next(get_db())
-    medications = db.query(MedicationDB).filter(MedicationDB.user_id == current_user.id).all()
     
-    # Generate unique ID
-    new_id = str(len(medications) + 1)
-    while any(med.id == new_id for med in medications):
-        new_id = str(int(new_id) + 1)
-    
-    # Convert the medication data to dict and handle datetime conversion
-    med_data = medication.model_dump()
-    
+    # Create new medication with auto-incrementing ID
     new_medication = MedicationDB(
-        id=new_id,
         user_id=current_user.id,
-        **med_data
+        **medication.model_dump()
     )
     
     db.add(new_medication)
@@ -693,7 +684,7 @@ async def create_medication(medication: MedicationCreate, current_user: User = D
     return {"success": True, "medication": {"id": new_medication.id, "name": new_medication.name, "dosage": new_medication.dosage, "frequency": new_medication.frequency, "prescribedBy": new_medication.prescribedBy, "startDate": new_medication.startDate, "endDate": new_medication.endDate, "totalDoses": new_medication.totalDoses, "instructions": new_medication.instructions}}
 
 @app.delete("/api/medications/{medication_id}")
-async def delete_medication(medication_id: str, current_user: User = Depends(get_current_user)):
+async def delete_medication(medication_id: int, current_user: User = Depends(get_current_user)):
     """Delete a medication for the authenticated user"""
     db: Session = next(get_db())
     

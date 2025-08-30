@@ -40,6 +40,8 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [addingMedication, setAddingMedication] = useState(false);
+  const [deletingMedications, setDeletingMedications] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState<AddMedicationForm>({
     name: '',
     dosage: '',
@@ -139,11 +141,11 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
   };
 
   const addMedication = async () => {
+    if (addingMedication) return; // Prevent multiple submissions
+    
+    setAddingMedication(true);
+    
     try {
-      console.log('Current user state:', user);
-      console.log('Access token available:', !!user?.access_token);
-      console.log('Token value:', user?.access_token ? `${user.access_token.substring(0, 20)}...` : 'None');
-      
       if (!user?.access_token) {
         console.error('No access token available');
         return;
@@ -159,9 +161,6 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
         totalDoses
       };
       
-      console.log('Sending request with body:', requestBody);
-      console.log('Authorization header:', `Bearer ${user.access_token.substring(0, 20)}...`);
-      
       const response = await fetch('http://localhost:8000/api/medications', {
         method: 'POST',
         headers: {
@@ -170,9 +169,6 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
         },
         body: JSON.stringify(requestBody),
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
 
       if (response.ok) {
         const data = await response.json();
@@ -187,6 +183,8 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
       }
     } catch (error) {
       console.error('Error adding medication:', error);
+    } finally {
+      setAddingMedication(false);
     }
   };
 
@@ -316,12 +314,28 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
   }, []);
 
   const deleteMedication = async (medId: string) => {
+    // Store medication before deletion for potential restoration
+    const medicationToDelete = medications.find(med => med.id === medId);
+    
+    // Set loading state for this specific medication
+    setDeletingMedications(prev => new Set(prev).add(medId));
+    
     try {
       if (!user?.access_token) {
         console.error('No access token available');
         return;
       }
 
+      // Optimistic update - remove medication immediately from UI
+      setMedications(prev => prev.filter(med => med.id !== medId));
+      
+      // Remove doses taken for this medication immediately
+      const newDoses = { ...dosesTaken };
+      delete newDoses[medId];
+      setDosesTaken(newDoses);
+      localStorage.setItem('medicationDosesTaken', JSON.stringify(newDoses));
+
+      // Make API call in background
       const response = await fetch(`http://localhost:8000/api/medications/${medId}`, {
         method: 'DELETE',
         headers: {
@@ -330,21 +344,36 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
         },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setMedications(prev => prev.filter(med => med.id !== medId));
-          // Remove doses taken for this medication
-          const newDoses = { ...dosesTaken };
-          delete newDoses[medId];
-          setDosesTaken(newDoses);
-          localStorage.setItem('medicationDosesTaken', JSON.stringify(newDoses));
+      if (!response.ok) {
+        // Restore medication if API call failed
+        if (medicationToDelete) {
+          setMedications(prev => [...prev, medicationToDelete]);
+          // Restore doses taken
+          if (dosesTaken[medId] !== undefined) {
+            setDosesTaken(prev => ({ ...prev, [medId]: dosesTaken[medId] }));
+            localStorage.setItem('medicationDosesTaken', JSON.stringify(dosesTaken));
+          }
         }
-      } else {
         console.error('Failed to delete medication:', response.status);
       }
     } catch (error) {
+      // Restore medication if there was an error
+      if (medicationToDelete) {
+        setMedications(prev => [...prev, medicationToDelete]);
+        // Restore doses taken
+        if (dosesTaken[medId] !== undefined) {
+          setDosesTaken(prev => ({ ...prev, [medId]: dosesTaken[medId] }));
+          localStorage.setItem('medicationDosesTaken', JSON.stringify(dosesTaken));
+        }
+      }
       console.error('Error deleting medication:', error);
+    } finally {
+      // Clear loading state
+      setDeletingMedications(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(medId);
+        return newSet;
+      });
     }
   };
 
@@ -733,10 +762,10 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
                 </Button>
                 <Button
                   onClick={addMedication}
-                  disabled={!formData.name || !formData.dosage || !formData.frequency || !formData.prescribedBy || !formData.endDate}
+                  disabled={!formData.name || !formData.dosage || !formData.frequency || !formData.prescribedBy || !formData.endDate || addingMedication}
                   className="flex-1"
                 >
-                  Add Medication
+                  {addingMedication ? 'Adding...' : 'Add Medication'}
                 </Button>
               </div>
             </div>

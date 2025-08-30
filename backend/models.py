@@ -48,7 +48,7 @@ class ChatMessage(Base):
 class Medication(Base):
     __tablename__ = "medications"
     
-    id = Column(String(50), primary_key=True, index=True)  # Changed to String to match API
+    id = Column(Integer, primary_key=True, index=True)  # Changed to Integer to match database
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(100), nullable=False)
     dosage = Column(String(50), nullable=False)
