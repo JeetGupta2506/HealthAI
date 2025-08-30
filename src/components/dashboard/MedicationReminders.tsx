@@ -25,6 +25,16 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
   console.log('MedicationReminders component rendering');
   
   const { user } = useAuth();  // Get user from auth context
+  
+  // Debug user state
+  useEffect(() => {
+    console.log('MedicationReminders - user state changed:', {
+      hasUser: !!user,
+      hasAccessToken: !!user?.access_token,
+      userId: user?.id,
+      username: user?.username
+    });
+  }, [user]);
   const [medications, setMedications] = useState<Medication[]>([]);
   const [dosesTaken, setDosesTaken] = useState<Record<string, number>>({});
   const [showAddForm, setShowAddForm] = useState(false);
@@ -66,11 +76,13 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
     }
   }, [dosesTaken]);
 
-  // Fetch medications from backend
+  // Fetch medications from backend when user is available
   useEffect(() => {
-    console.log('MedicationReminders - fetching medications');
-    fetchMedications();
-  }, []);
+    if (user?.access_token) {
+      console.log('MedicationReminders - user available, fetching medications');
+      fetchMedications();
+    }
+  }, [user?.access_token]);
 
   const fetchMedications = async () => {
     try {
@@ -79,6 +91,7 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
       
       if (!user?.access_token) {
         console.error('No access token available for fetching medications');
+        setLoading(false);
         return;
       }
 
@@ -100,9 +113,13 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
       } else {
         const errorText = await response.text();
         console.error('Failed to fetch medications:', response.status, errorText);
+        // Set empty medications array on error to prevent infinite loading
+        setMedications([]);
       }
     } catch (error) {
       console.error('Error fetching medications:', error);
+      // Set empty medications array on error to prevent infinite loading
+      setMedications([]);
     } finally {
       setLoading(false);
     }
@@ -203,6 +220,51 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
     return Math.max(0, total - taken);
   }, [dosesTaken]);
 
+  // Check if medication course is completed (all doses taken AND end date reached)
+  const isMedicationCompleted = useCallback((medication: Medication): boolean => {
+    const remainingDoses = getRemainingDoses(medication);
+    if (remainingDoses > 0) return false; // Still have doses to take
+    
+    // Check if end date has been reached
+    if (medication.endDate) {
+      const endDate = new Date(medication.endDate);
+      const currentDate = new Date();
+      // Reset time to compare only dates
+      endDate.setHours(0, 0, 0, 0);
+      currentDate.setHours(0, 0, 0, 0);
+      
+      return currentDate >= endDate;
+    }
+    
+    // If no end date, consider completed when all doses are taken
+    return true;
+  }, [getRemainingDoses]);
+
+  // Get medication status for display
+  const getMedicationStatus = useCallback((medication: Medication): string => {
+    const remainingDoses = getRemainingDoses(medication);
+    
+    if (remainingDoses === 0 && medication.endDate) {
+      const endDate = new Date(medication.endDate);
+      const currentDate = new Date();
+      // Reset time to compare only dates
+      endDate.setHours(0, 0, 0, 0);
+      currentDate.setHours(0, 0, 0, 0);
+      
+      if (currentDate < endDate) {
+        // All doses taken but end date not reached
+        const daysUntilEnd = Math.ceil((endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+        return `All doses taken. Course ends in ${daysUntilEnd} day${daysUntilEnd !== 1 ? 's' : ''}`;
+      }
+    }
+    
+    if (remainingDoses > 0) {
+      return `${remainingDoses} dose${remainingDoses !== 1 ? 's' : ''} remaining`;
+    }
+    
+    return 'Course completed';
+  }, [getRemainingDoses]);
+
   // Filter active and completed medications
   const activeMedications = medications.filter(med => getRemainingDoses(med) > 0);
   const completedMedications = medications.filter(med => getRemainingDoses(med) === 0);
@@ -217,22 +279,19 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
       
       // Check if course is completed
       const medication = medications.find(m => m.id === medicationId);
-      if (medication && medication.totalDoses) {
-        const remainingDoses = Math.max(0, medication.totalDoses - newDoses[medicationId]);
-        if (remainingDoses === 0) {
-          // Course completed! Show confetti celebration
-          confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { x: 0.5, y: 0.5 },
-            startVelocity: 45,
-            gravity: 0.8,
-            ticks: 120,
-            colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
-            shapes: ['circle', 'square'],
-            scalar: 2.5
-          });
-        }
+      if (medication && getRemainingDoses(medication) === 0) {
+        // Course completed! Show confetti celebration
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { x: 0.5, y: 0.5 },
+          startVelocity: 45,
+          gravity: 0.8,
+          ticks: 120,
+          colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'],
+          shapes: ['circle', 'square'],
+          scalar: 2.5
+        });
       }
       
       // Immediately save to localStorage
@@ -289,10 +348,18 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
     }
   };
 
-  if (loading) {
+  if (loading && user?.access_token) {
     return (
       <div className="h-full bg-white dark:bg-gray-800 flex items-center justify-center">
         <div className="text-gray-500">Loading medications...</div>
+      </div>
+    );
+  }
+
+  if (!user?.access_token) {
+    return (
+      <div className="h-full bg-white dark:bg-gray-800 flex items-center justify-center">
+        <div className="text-gray-500">Please sign in to view medications</div>
       </div>
     );
   }
@@ -396,12 +463,23 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
                                 
                                 {/* Status Indicators */}
                                 <div className="flex justify-center mt-2">
-                                  {remainingDoses === 0 ? (
-                                    <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full font-medium">
-                                      <Check className="w-3 h-3" />
-                                      Course Complete! 🎉
-                                    </div>
-                                  ) : null}
+                                  <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
+                                    remainingDoses === 0
+                                      ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30'
+                                      : 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30'
+                                  }`}>
+                                    {remainingDoses === 0 ? (
+                                      <>
+                                        <Check className="w-3 h-3" />
+                                        Course Complete! 🎉
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Clock className="w-3 h-3" />
+                                        {remainingDoses} dose{remainingDoses !== 1 ? 's' : ''} remaining
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             )}

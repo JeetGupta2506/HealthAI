@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 # Enable database imports
 from sqlalchemy.orm import Session
 from database import get_db, create_tables
-from models import User, ChatSession, ChatMessage, Medication
+from models import User, ChatSession, ChatMessage, Medication as MedicationDB
 from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
 
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -262,7 +262,7 @@ graph.set_entry_point("llm_node")
 graph.add_edge("llm_node", END)
 chat_workflow = graph.compile()
 
-class Medication(BaseModel):
+class MedicationResponse(BaseModel):
     id: str
     name: str
     dosage: str
@@ -663,14 +663,14 @@ async def assess_symptoms(request: SymptomAssessmentRequest):
 async def get_medications(current_user: User = Depends(get_current_user)):
     """Get all medications for the authenticated user"""
     db: Session = next(get_db())
-    medications = db.query(Medication).filter(Medication.user_id == current_user.id).all()
+    medications = db.query(MedicationDB).filter(MedicationDB.user_id == current_user.id).all()
     return {"medications": [{"id": med.id, "name": med.name, "dosage": med.dosage, "frequency": med.frequency, "prescribedBy": med.prescribedBy, "startDate": med.startDate, "endDate": med.endDate, "totalDoses": med.totalDoses, "instructions": med.instructions} for med in medications]}
 
 @app.post("/api/medications")
 async def create_medication(medication: MedicationCreate, current_user: User = Depends(get_current_user)):
     """Create a new medication for the authenticated user"""
     db: Session = next(get_db())
-    medications = db.query(Medication).filter(Medication.user_id == current_user.id).all()
+    medications = db.query(MedicationDB).filter(MedicationDB.user_id == current_user.id).all()
     
     # Generate unique ID
     new_id = str(len(medications) + 1)
@@ -678,9 +678,9 @@ async def create_medication(medication: MedicationCreate, current_user: User = D
         new_id = str(int(new_id) + 1)
     
     # Convert the medication data to dict and handle datetime conversion
-    med_data = medication.dict()
+    med_data = medication.model_dump()
     
-    new_medication = Medication(
+    new_medication = MedicationDB(
         id=new_id,
         user_id=current_user.id,
         **med_data
@@ -698,7 +698,7 @@ async def delete_medication(medication_id: str, current_user: User = Depends(get
     db: Session = next(get_db())
     
     # Find and remove the medication
-    medication_to_delete = db.query(Medication).filter(Medication.id == medication_id, Medication.user_id == current_user.id).first()
+    medication_to_delete = db.query(MedicationDB).filter(MedicationDB.id == medication_id, MedicationDB.user_id == current_user.id).first()
     if medication_to_delete:
         db.delete(medication_to_delete)
         db.commit()
