@@ -145,7 +145,7 @@ export function SymptomChecker() {
         try {
           const errorData = await response.json();
           if (errorData.detail) {
-            setAnalysis(`Analysis error: ${errorData.detail}`);
+            setAnalysis(Analysis error: ${errorData.detail});
           } else {
             setAnalysis('Unable to analyze symptoms at this time. Please try again later.');
           }
@@ -158,9 +158,9 @@ export function SymptomChecker() {
 
       // Check if it's a network error (backend not running)
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        setAnalysis('🚨 **Backend Service Unavailable**\n\nPlease ensure the server is running and try again. If the problem persists, contact support.');
+        setAnalysis('🚨 *Backend Service Unavailable*\n\nPlease ensure the server is running and try again. If the problem persists, contact support.');
       } else {
-        setAnalysis('❌ **Connection Error**\n\nUnable to connect to the symptom analysis service. Please check your internet connection and try again.');
+        setAnalysis('❌ *Connection Error*\n\nUnable to connect to the symptom analysis service. Please check your internet connection and try again.');
       }
     } finally {
       setIsAnalyzing(false);
@@ -209,76 +209,76 @@ export function SymptomChecker() {
     // Risk Level
     if (data.riskLevel && data.riskLevel !== 'unknown') {
       const riskEmoji = data.riskLevel === 'urgent' ? '🚨' :
-        data.riskLevel === 'high' ? '⚠️' :
+        data.riskLevel === 'high' ? '⚠' :
           data.riskLevel === 'moderate' ? '🟡' : '🟢';
-      response += `${riskEmoji} **Risk Level:** ${data.riskLevel.toUpperCase()}\n\n`;
+      response += ${riskEmoji} **Risk Level:** ${data.riskLevel.toUpperCase()}\n\n;
     }
 
     // Possible Conditions
     if (data.conditions && data.conditions.length > 0) {
-      response += '## 🔍 **Possible Conditions**\n';
+      response += '## 🔍 *Possible Conditions*\n';
       data.conditions.forEach((condition: any) => {
-        const urgency = condition.urgent ? '🚨 URGENT - Seek immediate medical attention!' : '⚠️ Monitor closely';
+        const urgency = condition.urgent ? '🚨 URGENT - Seek immediate medical attention!' : '⚠ Monitor closely';
         const description = condition.description ? ` - ${condition.description}` : '';
-        response += `• **${condition.name}** (${condition.probability}% likely)${description}\n`;
+        response += • **${condition.name}** (${condition.probability}% likely)${description}\n;
         response += `  ${urgency}\n\n`;
       });
     }
 
     // Immediate Actions
     if (data.immediateActions && data.immediateActions.length > 0) {
-      response += '## ⚡ **Immediate Actions**\n';
+      response += '## ⚡ *Immediate Actions*\n';
       data.immediateActions.forEach((action: string) => {
-        response += `• ${action}\n`;
+        response += • ${action}\n;
       });
       response += '\n';
     }
 
     // Precautions
     if (data.precautions && data.precautions.length > 0) {
-      response += '## 🛡️ **Precautions**\n';
+      response += '## 🛡 *Precautions*\n';
       data.precautions.forEach((precaution: string) => {
-        response += `• ${precaution}\n`;
+        response += • ${precaution}\n;
       });
       response += '\n';
     }
 
     // Medications
     if (data.medications && data.medications.length > 0) {
-      response += '## 💊 **Medications**\n';
+      response += '## 💊 *Medications*\n';
       data.medications.forEach((medication: string) => {
-        response += `• ${medication}\n`;
+        response += • ${medication}\n;
       });
       response += '\n';
     }
 
     // Lifestyle Changes
     if (data.lifestyleChanges && data.lifestyleChanges.length > 0) {
-      response += '## 🌱 **Lifestyle Changes**\n';
+      response += '## 🌱 *Lifestyle Changes*\n';
       data.lifestyleChanges.forEach((change: string) => {
-        response += `• ${change}\n`;
+        response += • ${change}\n;
       });
       response += '\n';
     }
 
     // When to Seek Medical Help
     if (data.whenToSeekHelp && data.whenToSeekHelp.length > 0) {
-      response += '## 🚨 **When to Seek Medical Help**\n';
+      response += '## 🚨 *When to Seek Medical Help*\n';
       data.whenToSeekHelp.forEach((symptom: string) => {
-        response += `• ${symptom}\n`;
+        response += • ${symptom}\n;
       });
       response += '\n';
     }
 
     // Follow-up
     if (data.followUp) {
-      response += '## 📋 **Follow-up**\n';
-      response += `${data.followUp}\n\n`;
+      response += '## 📋 *Follow-up*\n';
+      response += ${data.followUp}\n\n;
     }
 
     // Disclaimer
     response += '---\n';
-    response += '**⚠️ Disclaimer:** This analysis is for informational purposes only and should not replace professional medical advice. Always consult a qualified healthcare provider for proper diagnosis and treatment.';
+    response += '⚠ Disclaimer:** This analysis is for informational purposes only and should not replace professional medical advice. Always consult a qualified healthcare provider for proper diagnosis and treatment.';
 
     if (!response.trim()) {
       response = 'Analysis completed. Please consult a healthcare professional for medical advice.';
@@ -305,17 +305,17 @@ export function SymptomChecker() {
 
   // Helper function to parse markdown text, handling bold and other markdown elements
   const parseMarkdownText = (text: string) => {
-    // Use regex to find all **text** patterns and replace them with JSX elements
+    // Use regex to find all *text* patterns and replace them with JSX elements
     const parts = [];
     let lastIndex = 0;
-    const regex = /\*\*(.*?)\*\*/g;
+    const regex = /\\(.?)\\*/g;
     let match;
     
     while ((match = regex.exec(text)) !== null) {
       // Add text before the match
       if (match.index > lastIndex) {
         parts.push(
-          <span key={`text-${lastIndex}`}>
+          <span key={text-${lastIndex}}>
             {text.slice(lastIndex, match.index)}
           </span>
         );
@@ -323,7 +323,7 @@ export function SymptomChecker() {
       
       // Add the bold text
       parts.push(
-        <strong key={`bold-${match.index}`} className="font-semibold text-gray-800 dark:text-gray-100">
+        <strong key={bold-${match.index}} className="font-semibold text-gray-800 dark:text-gray-100">
           {match[1]}
         </strong>
       );
@@ -334,7 +334,7 @@ export function SymptomChecker() {
     // Add remaining text after the last match
     if (lastIndex < text.length) {
       parts.push(
-        <span key={`text-${lastIndex}`}>
+        <span key={text-${lastIndex}}>
           {text.slice(lastIndex)}
         </span>
       );

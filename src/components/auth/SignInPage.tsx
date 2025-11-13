@@ -6,7 +6,6 @@ import {
   EyeOff, 
   ArrowLeft, 
   Shield, 
-  Mail,
   Lock,
   User
 } from 'lucide-react';
@@ -55,7 +54,8 @@ export function SignInPage() {
         const userData = {
           id: data.user_id,
           email: data.email || formData.username,  // Fallback to username if email not provided
-          username: data.username,
+          // If backend doesn't return a username, fall back to the username entered on the form
+          username: data.username ?? formData.username,
           access_token: data.access_token
         };
         login(userData);

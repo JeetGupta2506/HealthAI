@@ -1,27 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { SettingsModal } from './SettingsModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ProfileData {
   name: string;
   email: string;
-  dateOfBirth: string;
 }
 
 export function Header() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { user, updateUser } = useAuth();
+
   const [profileData, setProfileData] = useState<ProfileData>({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    dateOfBirth: '1990-01-01'
+    name: user?.username ?? '',
+    email: user?.email ?? '',
   });
+
+  // Keep local profileData in sync with authenticated user when it changes
+  useEffect(() => {
+    setProfileData(prev => ({
+      ...prev,
+      name: user?.username ?? prev.name,
+      email: user?.email ?? prev.email
+    }));
+  }, [user]);
 
   const handleProfileUpdate = (updatedProfile: ProfileData) => {
     setProfileData(updatedProfile);
+    // Persist updated username/email into auth context so header and other
+    // components reflect the change across the app
+    try {
+      updateUser({ username: updatedProfile.name, email: updatedProfile.email });
+    } catch (e) {
+      // ignore if updateUser not available or fails; UI still updates locally
+      // In a real app you might show an error toast here
+      console.error('Failed to update auth user:', e);
+    }
   };
-  
 
   return (
     <>
@@ -38,18 +56,18 @@ export function Header() {
             <ThemeToggle />
             
             {/* User Profile with Settings */}
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2"
-                onClick={() => setIsSettingsOpen(true)}
-              >
-                <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <span className="hidden md:inline text-gray-700 dark:text-gray-200">
-                  {profileData.name}
-                </span>
-              </Button>
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <span className="hidden md:inline text-gray-700 dark:text-gray-200">
+                {user?.username ?? profileData.name}
+              </span>
+            </Button>
           </div>
         </div>
       </header>
