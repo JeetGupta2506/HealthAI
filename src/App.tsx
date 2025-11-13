@@ -61,7 +61,7 @@ function Dashboard() {
         setLoading(false);
         setHealthStatus('timeout');
       }
-    }, 5000); // 5 second timeout
+    }, 15000); // 15 second timeout
     
     fetchHealth();
     
@@ -146,16 +146,6 @@ function Dashboard() {
             </div>
           ) : (
             <>
-              {/* Backend Status Indicator */}
-              {healthStatus && (
-                <div className={`p-2 text-center text-sm ${
-                  healthStatus === 'ok' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200' :
-                  healthStatus === 'unavailable' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200' :
-                  'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                }`}>
-                  Backend: {healthStatus === 'ok' ? 'Connected' : healthStatus === 'unavailable' ? 'Unavailable' : 'Timeout'}
-                </div>
-              )}
               {renderContent()}
             </>
           )}
