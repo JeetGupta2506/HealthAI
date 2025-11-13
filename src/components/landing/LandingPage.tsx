@@ -5,7 +5,6 @@ import {
   Zap, 
   ArrowRight, 
   Star,
-  Play,
   Activity,
   MessageSquare
 } from 'lucide-react';
@@ -42,25 +41,26 @@ const features = [
 
 const testimonials = [
   {
-    name: 'Sarah Johnson',
+    name: 'Jeet',
     role: 'Patient',
     content: 'This AI health assistant has transformed how I manage my chronic condition. The insights are incredibly accurate.',
     rating: 5,
-    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+    // place your images in the project's `public/images/testimonials` folder
+    avatar: '/images/testimonials/Tommy.jpg'
   },
   {
-    name: 'Dr. Michael Chen',
+    name: 'Kalp',
     role: 'Cardiologist',
     content: 'The AI-powered symptom checker is remarkably sophisticated. It helps my patients make informed decisions.',
     rating: 5,
-    avatar: 'https://images.pexels.com/photos/612608/pexels-photo-612608.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+    avatar: '/images/testimonials/God.jpg'
   },
   {
-    name: 'Emily Rodriguez',
+    name: 'Akshat',
     role: 'Wellness Coach',
     content: 'The nutrition AI agent provides evidence-based recommendations that my clients love. Highly recommended!',
     rating: 5,
-    avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
+  avatar: '/images/testimonials/Tommy-2.jpg'
   }
 ];
 
@@ -103,7 +103,7 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-100 via-indigo-50 to-emerald-100 dark:from-blue-900 dark:via-indigo-900 dark:to-emerald-900 transition-colors duration-200">
+      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-100 via-indigo-50 to-emerald-100 dark:from-gray-950 dark:via-blue-950/40 dark:to-emerald-950/60 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -126,15 +126,6 @@ export function LandingPage() {
                 <Button size="lg" className="group bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300" onClick={() => navigate('/signup')}>
                   Start Your Health Journey
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="group border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900/20 shadow-md hover:shadow-lg transition-all duration-300"
-                  onClick={() => navigate('/signup')}
-                >
-                  <Play className="w-5 h-5 mr-2" />
-                  Watch Demo
                 </Button>
               </div>
             </div>
@@ -336,6 +327,7 @@ export function LandingPage() {
                   <img 
                     src={testimonial.avatar} 
                     alt={testimonial.name}
+                    onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><rect width='100%25' height='100%25' fill='%23e5e7eb' /><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='20' font-family='Arial'>User</text></svg>" }}
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>

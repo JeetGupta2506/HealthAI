@@ -97,11 +97,11 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
         return;
       }
 
-      console.log('Making request to /api/medications with token:', `${user.access_token.substring(0, 20)}...`);
+      console.log('Making request to /api/medications with token:', ${user.access_token.substring(0, 20)}...);
       
       const response = await fetch('http://localhost:8000/api/medications', {
         headers: {
-          'Authorization': `Bearer ${user.access_token}`,
+          'Authorization': Bearer ${user.access_token},
           'Content-Type': 'application/json',
         },
       });
@@ -164,7 +164,7 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
       const response = await fetch('http://localhost:8000/api/medications', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${user.access_token}`,
+          'Authorization': Bearer ${user.access_token},
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
@@ -294,10 +294,10 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
       localStorage.setItem('medicationDosesTaken', JSON.stringify(newDoses));
 
       // Make API call in background
-      const response = await fetch(`http://localhost:8000/api/medications/${medId}`, {
+      const response = await fetch(http://localhost:8000/api/medications/${medId}, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${user.access_token}`,
+          'Authorization': Bearer ${user.access_token},
           'Content-Type': 'application/json',
         },
       });
@@ -452,13 +452,13 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
                                         fill="none"
                                         strokeWidth="3"
                                         stroke="#3b82f6"
-                                        strokeDasharray={`${percent} ${100 - percent}`}
+                                        strokeDasharray={${percent} ${100 - percent}}
                                         strokeLinecap="round"
                                       />
                                       <text x="18" y="20.5" textAnchor="middle" fontSize="6" fill="#0f172a" className="dark:fill-white">{percent}%</text>
                                     </svg>
 
-                                    <div className={`mt-1 text-xs font-semibold px-2 py-1 rounded-full ${remainingDoses === 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
+                                    <div className={mt-1 text-xs font-semibold px-2 py-1 rounded-full ${remainingDoses === 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}}>
                                       {remainingDoses} left
                                     </div>
                                   </div>

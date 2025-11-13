@@ -98,6 +98,86 @@ body {
   color: rgb(var(--color-foreground));
 }
 
+/* Enhanced Markdown Styling for Chat */
+.chat-markdown {
+  line-height: 1.6;
+}
+
+.chat-markdown p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown ul,
+.chat-markdown ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.chat-markdown li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.chat-markdown strong {
+  font-weight: 700;
+  color: inherit;
+}
+
+.chat-markdown em {
+  font-style: italic;
+  color: inherit;
+}
+
+.chat-markdown h1,
+.chat-markdown h2,
+.chat-markdown h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.chat-markdown h1:first-child,
+.chat-markdown h2:first-child,
+.chat-markdown h3:first-child {
+  margin-top: 0;
+}
+
+.chat-markdown blockquote {
+  border-left: 4px solid rgb(var(--color-primary));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.chat-markdown code {
+  background-color: rgb(var(--color-muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.875em;
+}
+
+.chat-markdown pre {
+  background-color: rgb(var(--color-muted));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.chat-markdown pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
 /* Custom utility classes for the dark grey theme */
 .bg-gradient-dark-grey {
   background: linear-gradient(135deg, rgb(15 23 42) 0%, rgb(30 41 59) 50%, rgb(51 65 85) 100%);

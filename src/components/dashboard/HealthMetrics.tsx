@@ -1,4 +1,4 @@
-import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus, MinusCircle, Edit2, Plus, PlusCircle, Check, Target } from 'lucide-react';
+import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus, MinusCircle, Edit2, PlusCircle, Check, Target } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
@@ -136,15 +136,15 @@ export function HealthMetrics() {
     }
 
     return (
-      <div className="h-full bg-white dark:bg-gray-800">
-        <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+      <div className="h-full bg-white dark:bg-gray-800 p-4">
+        <div className="border-b border-gray-200 dark:border-gray-700 px-8 py-6">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Health Metrics</h2>
           <p className="text-gray-600 dark:text-gray-300 mt-1">Real-time health data overview</p>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {metrics.map((metric) => (
-              <div key={metric.id} data-metric-id={metric.id} className="relative bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+              <div key={metric.id} data-metric-id={metric.id} className="relative bg-gradient-to-br from-emerald-50 to-green-50 dark:from-gray-900 dark:to-gray-800 p-6 rounded-xl border border-emerald-200 dark:border-gray-600 transition-colors duration-200 shadow-sm hover:shadow-md">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-gray-600 dark:text-gray-400">{getIcon(metric.name)}</div>
                   {getTrendIcon(metric.trend)}

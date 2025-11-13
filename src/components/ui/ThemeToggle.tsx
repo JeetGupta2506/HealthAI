@@ -1,4 +1,3 @@
-import React from 'react';
 import { Sun, Moon} from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -82,17 +81,17 @@ export function SimpleThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="
-        relative p-3 rounded-xl transition-all duration-300 group overflow-hidden
-        bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900
-        hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-700 dark:hover:to-gray-800
-        text-white
-        shadow-lg hover:shadow-xl dark:shadow-gray-900/30
-        border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/50 dark:hover:border-gray-600/50
+      className={
+        `relative p-3 rounded-xl transition-all duration-300 group overflow-hidden
+        bg-gradient-to-br ${actualTheme === 'light' ? 'from-gray-200 to-gray-300' : 'from-gray-800 to-gray-900'}
+        ${actualTheme === 'light' ? 'hover:from-gray-300 hover:to-gray-400' : 'dark:hover:from-gray-700 dark:hover:to-gray-800'}
+        ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'}
+        ${actualTheme === 'light' ? 'shadow-md hover:shadow-lg' : 'shadow-lg dark:shadow-gray-900/30'}
+        border ${actualTheme === 'light' ? 'border-gray-300/60 hover:border-gray-400/60' : 'border-gray-700/50 dark:hover:border-gray-600/50'}
         focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-2
         focus:ring-offset-white dark:focus:ring-offset-gray-900
-        transform hover:scale-105 active:scale-95
-      "
+        transform hover:scale-105 active:scale-95`
+      }
       aria-label={`Switch to ${actualTheme === 'light' ? 'dark' : 'light'} mode`}
       title={`Switch to ${actualTheme === 'light' ? 'dark' : 'light'} mode`}
     >
