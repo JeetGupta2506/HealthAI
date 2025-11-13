@@ -154,7 +154,12 @@ try:
     print(f"DEBUG: Google API key found: {api_key is not None}")
     if api_key and api_key != "your_google_api_key_here":
         print("DEBUG: Initializing LLM with Google API key")
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            temperature=0.7,
+            max_tokens=1024,
+            timeout=30
+        )
         print("DEBUG: LLM initialized successfully")
     else:
         print("Warning: Google API key not set. AI features will be limited.")
@@ -169,44 +174,32 @@ PROMPT_TEMPLATES = {
         "You are a helpful general health assistant. "
         "Response Style: {response_style}\n\n"
         "If response_style is 'concise': Keep your answer brief and to the point (2-3 sentences max). "
-        "If response_style is 'detailed': Provide comprehensive information with examples and explanations.\n\n"
-        "Always format your response in **Markdown** with:\n"
-        "- Clear headings (## Heading)\n"
-        "- Bullet points (- item)\n"
-        "- Bold keywords (**word**)\n\n"
-        "Answer the following user question:\nUser: {message}"
+        "If response_style is 'detailed': Provide comprehensive information.\n\n"
+        "Use Markdown formatting.\n\n"
+        "User: {message}"
     ),
     "symptom": (
         "You are a symptom checker AI. "
         "Response Style: {response_style}\n\n"
         "If response_style is 'concise': Give brief, direct answers (2-3 sentences max). "
-        "If response_style is 'detailed': Provide comprehensive analysis with multiple sections.\n\n"
-        "Always format your response in **Markdown** with:\n"
-        "- Clear sections (## Symptoms, ## Possible Causes, ## Next Steps)\n"
-        "- Bullet points (- item)\n"
-        "- Bold important terms (**term**)\n\n"
+        "If response_style is 'detailed': Provide comprehensive analysis.\n\n"
+        "Use Markdown formatting.\n\n"
         "User: {message}"
     ),
     "nutrition": (
         "You are a nutrition expert AI. "
         "Response Style: {response_style}\n\n"
         "If response_style is 'concise': Keep advice brief and actionable (2-3 sentences max). "
-        "If response_style is 'detailed': Provide comprehensive guidance with examples and explanations.\n\n"
-        "Always format your response in **Markdown** with:\n"
-        "- Headings for structure (## Diet Tips, ## Foods to Include, ## Foods to Avoid)\n"
-        "- Bullet points for lists\n"
-        "- Bold important nutrients and food names\n\n"
+        "If response_style is 'detailed': Provide comprehensive guidance.\n\n"
+        "Use Markdown formatting.\n\n"
         "User: {message}"
     ),
     "mental-health": (
         "You are a mental health coach AI. "
         "Response Style: {response_style}\n\n"
         "If response_style is 'concise': Give brief, supportive advice (2-3 sentences max). "
-        "If response_style is 'detailed': Provide comprehensive strategies with examples and resources.\n\n"
-        "Always format your response in **Markdown** with:\n"
-        "- Headings for clarity (## Coping Strategies, ## Resources, ## Self-Care)\n"
-        "- Bullet points for advice\n"
-        "- Bold key ideas for emphasis\n\n"
+        "If response_style is 'detailed': Provide comprehensive strategies.\n\n"
+        "Use Markdown formatting.\n\n"
         "User: {message}"
     ),
 } 
