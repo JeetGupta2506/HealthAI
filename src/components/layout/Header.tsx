@@ -21,6 +21,7 @@ export function Header() {
   const handleProfileUpdate = (updatedProfile: ProfileData) => {
     setProfileData(updatedProfile);
   };
+  
 
   return (
     <>
@@ -37,18 +38,18 @@ export function Header() {
             <ThemeToggle />
             
             {/* User Profile with Settings */}
-            <Button 
-              variant="ghost" 
-              className="flex items-center gap-2"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <span className="hidden md:inline text-gray-700 dark:text-gray-200">
-                {profileData.name}
-              </span>
-            </Button>
+              <Button 
+                variant="ghost" 
+                className="flex items-center gap-2"
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+                <span className="hidden md:inline text-gray-700 dark:text-gray-200">
+                  {profileData.name}
+                </span>
+              </Button>
           </div>
         </div>
       </header>

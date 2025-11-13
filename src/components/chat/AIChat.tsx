@@ -4,6 +4,9 @@ import { Send, Bot, User, Brain, Stethoscope, Apple, Heart, MessageSquare, FileT
 import { Button } from '../ui/Button';
 import { ChatMessage } from '../../types/health';
 import ReactMarkdown from "react-markdown"; 
+import { useChat } from '../../contexts/ChatContext';
+import { SimpleThemeToggle } from '../ui/ThemeToggle';
+import { SettingsModal } from '../layout/SettingsModal';
 
 const agentTypes = [
   { id: 'general', name: 'General Health', icon: <Stethoscope className="w-4 h-4" />, color: 'bg-blue-500' },
@@ -25,10 +28,16 @@ const mockMessages: ChatMessage[] = [
 export function AIChat() {
   const [messages, setMessages] = useState<ChatMessage[]>(mockMessages);
   const [inputValue, setInputValue] = useState('');
-  const [selectedAgent, setSelectedAgent] = useState<string>('general');
+  const [selectedAgent] = useState<string>('general');
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [responseStyle, setResponseStyle] = useState<'concise' | 'detailed'>('concise');
+  const { responseStyle, setResponseStyle } = useChat();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    dateOfBirth: '1990-01-01'
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -94,67 +103,61 @@ export function AIChat() {
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-800">
-      <div className="border-b border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">AI Health Assistant</h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Multi-agent AI system powered by Gemini, LangGraph & CrewAI</p>
-      </div>
-      
-      {/* Agent Selector and Response Style Toggle */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          {/* Agent Selector */}
-          <div className="flex flex-wrap gap-2">
-            {agentTypes.map((agent) => (
-              <button
-                key={agent.id}
-                onClick={() => setSelectedAgent(agent.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  selectedAgent === agent.id 
-                    ? `${agent.color} text-white shadow-md` 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 shadow-sm'
-                }`}
-              >
-                {agent.icon}
-                {agent.name}
-              </button>
-            ))}
-          </div>
-          
-          {/* Response Style Toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">Response Style:</span>
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-              <button
-                onClick={() => setResponseStyle('concise')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  responseStyle === 'concise'
-                    ? 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4" />
-                Concise
-              </button>
-              <button
-                onClick={() => setResponseStyle('detailed')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  responseStyle === 'detailed'
-                    ? 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                Detailed
-              </button>
+      {/* Header with user profile, theme toggle, and response style selector */}
+      <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Response Style Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-300 font-medium hidden sm:inline">Response:</span>
+              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                <button
+                  onClick={() => setResponseStyle('concise')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    responseStyle === 'concise'
+                      ? 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-sm'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="hidden sm:inline">Concise</span>
+                </button>
+                <button
+                  onClick={() => setResponseStyle('detailed')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    responseStyle === 'detailed'
+                      ? 'bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-sm'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span className="hidden sm:inline">Detailed</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Response Style Info */}
-        <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-          <span className="font-medium">Concise:</span> Brief, direct answers • <span className="font-medium">Detailed:</span> Comprehensive explanations with examples
+          
+          <div className="flex items-center gap-4">
+            {/* Theme Toggle */}
+            <SimpleThemeToggle />
+            
+            {/* User Profile */}
+            <Button 
+              variant="ghost" 
+              className="flex items-center gap-2"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <span className="hidden md:inline text-gray-700 dark:text-gray-200">
+                {profileData.name}
+              </span>
+            </Button>
+          </div>
         </div>
       </div>
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="space-y-4">
@@ -222,6 +225,14 @@ export function AIChat() {
           </Button>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)}
+        profileData={profileData}
+        onProfileUpdate={setProfileData}
+      />
     </div>
   );
 }

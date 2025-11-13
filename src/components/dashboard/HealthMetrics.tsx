@@ -1,4 +1,4 @@
-import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus, MinusCircle, Edit2, Plus, PlusCircle, Check, Target } from 'lucide-react';
+import { Heart, Activity, Moon, Droplets, TrendingUp, TrendingDown, Minus, MinusCircle, Edit2, PlusCircle, Check, Target } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
@@ -142,7 +142,7 @@ export function HealthMetrics() {
           <p className="text-gray-600 dark:text-gray-300 mt-1">Real-time health data overview</p>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {metrics.map((metric) => (
               <div key={metric.id} data-metric-id={metric.id} className="relative bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                 <div className="flex items-center justify-between mb-2">

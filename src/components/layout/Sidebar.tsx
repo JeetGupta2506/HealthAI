@@ -6,8 +6,6 @@ import {
   MessageSquare, 
   Activity, 
   Pill, 
-  Brain, 
-  FileText, 
   LogOut 
 } from 'lucide-react';
 
@@ -20,9 +18,7 @@ const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'chat', label: 'AI Assistant', icon: MessageSquare },
   { id: 'symptoms', label: 'Symptom Checker', icon: Activity },
-  { id: 'medications', label: 'Medications', icon: Pill },
-  { id: 'insights', label: 'Health Insights', icon: Brain },
-  { id: 'reports', label: 'Reports', icon: FileText }
+  { id: 'medications', label: 'Medications', icon: Pill }
 ];
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {

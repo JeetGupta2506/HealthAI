@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from './contexts/ThemeContext';
 import { HealthProvider } from './contexts/HealthContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ChatProvider } from './contexts/ChatContext';
 import { LandingPage } from './components/landing/LandingPage';
 import { SignUpPage } from './components/auth/SignUpPage';
 import { SignInPage } from './components/auth/SignInPage';
@@ -11,7 +12,6 @@ import { Header } from './components/layout/Header';
 import { HealthMetrics } from './components/dashboard/HealthMetrics';
 import { AIChat } from './components/chat/AIChat';
 import { MedicationReminders } from './components/dashboard/MedicationReminders';
-import { HealthInsights } from './components/dashboard/HealthInsights';
 import { SymptomChecker } from './components/symptoms/SymptomChecker';
 import { useAuth } from './contexts/AuthContext';
 
@@ -75,12 +75,13 @@ function Dashboard() {
         case 'dashboard':
           return (
             <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 flex flex-col">
                   <HealthMetrics />
                 </div>
-                <MedicationReminders showAddButton={false} />
-                <HealthInsights />
+                <div className="flex flex-col">
+                  <MedicationReminders showAddButton={false} />
+                </div>
               </div>
             </div>
           );
@@ -90,26 +91,16 @@ function Dashboard() {
           return <SymptomChecker />;
         case 'medications':
           return <MedicationReminders />;
-        case 'insights':
-          return <HealthInsights />;
-        case 'reports':
-          return (
-            <div className="h-full bg-white dark:bg-gray-800 flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Health Reports</h2>
-                <p className="text-gray-600 dark:text-gray-300">Detailed health reports and analytics coming soon...</p>
-              </div>
-            </div>
-          );
         default:
           return (
             <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 flex flex-col">
                   <HealthMetrics />
                 </div>
-                <MedicationReminders showAddButton={false} />
-                <HealthInsights />
+                <div className="flex flex-col">
+                  <MedicationReminders showAddButton={false} />
+                </div>
               </div>
             </div>
           );
@@ -133,7 +124,7 @@ function Dashboard() {
         onTabChange={setActiveTab}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        {activeTab !== 'chat' && <Header />}
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {loading ? (
             <div className="p-6 text-center">
@@ -160,7 +151,8 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <HealthProvider>
-          <Router>
+          <ChatProvider>
+            <Router>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/signup" element={<SignUpPage />} />
@@ -172,7 +164,8 @@ function App() {
               } />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </Router>
+            </Router>
+          </ChatProvider>
         </HealthProvider>
       </AuthProvider>
     </ThemeProvider>
