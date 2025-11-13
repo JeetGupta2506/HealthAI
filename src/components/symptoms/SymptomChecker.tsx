@@ -125,6 +125,11 @@ export function SymptomChecker() {
 
       console.log('Sending symptoms to backend:', formattedSymptoms);
       
+      // Use AbortController to avoid hanging indefinitely if the backend doesn't respond
+      const controller = new AbortController();
+      const timeoutMs = 10000; // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       const response = await fetch('http://localhost:8000/api/assess-symptoms', {
         method: 'POST',
         headers: {
@@ -133,6 +138,10 @@ export function SymptomChecker() {
         body: JSON.stringify({
           symptoms: formattedSymptoms
         }),
+        signal: controller.signal,
+      }).finally(() => {
+        // Clear timeout as soon as fetch settles (either resolved or rejected)
+        clearTimeout(timeoutId);
       });
       
       console.log('Backend response status:', response.status);
@@ -159,7 +168,11 @@ export function SymptomChecker() {
       console.error('Symptom analysis error:', error);
       
       // Check if it's a network error (backend not running)
-      if (error instanceof TypeError && error.message.includes('fetch')) {
+      // Detect abort (timeout)
+      if ((error as any)?.name === 'AbortError') {
+        setAnalysis('⏱️ **Request timed out**\n\nThe symptom analysis request took too long. Please try again, or check that the backend server is running.');
+      } else if (error instanceof TypeError) {
+        // Typical browser network error when fetch fails
         setAnalysis('🚨 **Backend Service Unavailable**\n\nPlease ensure the server is running and try again. If the problem persists, contact support.');
       } else {
         setAnalysis('❌ **Connection Error**\n\nUnable to connect to the symptom analysis service. Please check your internet connection and try again.');
@@ -168,6 +181,8 @@ export function SymptomChecker() {
       setIsAnalyzing(false);
     }
   };
+
+  
 
 
 
@@ -290,6 +305,8 @@ export function SymptomChecker() {
     
     return response;
   };
+
+
 
 
 

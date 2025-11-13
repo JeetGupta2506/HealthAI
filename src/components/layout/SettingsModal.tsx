@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { X, User, Lock, Trash2, Save, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, User, Lock, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface ProfileData {
   name: string;
   email: string;
-  dateOfBirth: string;
 }
 
 interface SettingsModalProps {
@@ -216,17 +215,7 @@ export function SettingsModal({ isOpen, onClose, profileData, onProfileUpdate }:
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  value={localProfileData.dateOfBirth}
-                  onChange={(e) => setLocalProfileData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              {/* Date of Birth removed - profile now stores only name and email */}
 
               <Button
                 onClick={handleProfileUpdate}

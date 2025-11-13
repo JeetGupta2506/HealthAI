@@ -219,49 +219,7 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
   }, [dosesTaken]);
 
   // Check if medication course is completed (all doses taken AND end date reached)
-  const isMedicationCompleted = useCallback((medication: Medication): boolean => {
-    const remainingDoses = getRemainingDoses(medication);
-    if (remainingDoses > 0) return false; // Still have doses to take
-    
-    // Check if end date has been reached
-    if (medication.endDate) {
-      const endDate = new Date(medication.endDate);
-      const currentDate = new Date();
-      // Reset time to compare only dates
-      endDate.setHours(0, 0, 0, 0);
-      currentDate.setHours(0, 0, 0, 0);
-      
-      return currentDate >= endDate;
-    }
-    
-    // If no end date, consider completed when all doses are taken
-    return true;
-  }, [getRemainingDoses]);
-
-  // Get medication status for display
-  const getMedicationStatus = useCallback((medication: Medication): string => {
-    const remainingDoses = getRemainingDoses(medication);
-    
-    if (remainingDoses === 0 && medication.endDate) {
-      const endDate = new Date(medication.endDate);
-      const currentDate = new Date();
-      // Reset time to compare only dates
-      endDate.setHours(0, 0, 0, 0);
-      currentDate.setHours(0, 0, 0, 0);
-      
-      if (currentDate < endDate) {
-        // All doses taken but end date not reached
-        const daysUntilEnd = Math.ceil((endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
-        return `All doses taken. Course ends in ${daysUntilEnd} day${daysUntilEnd !== 1 ? 's' : ''}`;
-      }
-    }
-    
-    if (remainingDoses > 0) {
-      return `${remainingDoses} dose${remainingDoses !== 1 ? 's' : ''} remaining`;
-    }
-    
-    return 'Course completed';
-  }, [getRemainingDoses]);
+  // (Removed unused helpers to satisfy linting)
 
   // Filter active and completed medications
   const activeMedications = medications.filter(med => getRemainingDoses(med) > 0);
@@ -448,114 +406,110 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
                     const remainingDoses = getRemainingDoses(medication);
                     
                     return (
-                                             <div key={medication.id} className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 rounded-xl border border-blue-200 dark:border-gray-600 transition-colors duration-200">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
-                            <Pill className="w-5 h-5" />
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{medication.name}</h4>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{medication.dosage}</span>
+                      <div key={medication.id} className="p-4 bg-white/80 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                        <div className="flex items-center gap-4">
+                          {/* Left icon */}
+                          <div className="flex-shrink-0">
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                              <Pill className="w-6 h-6" />
                             </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">{medication.frequency}</p>
-                            
-                            {/* Dose Progress */}
-                            {medication.totalDoses && (
-                              <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-100 dark:border-blue-800">
-                                {/* Remaining Doses - Prominently Displayed */}
-                                <div className="text-center mb-2">
-                                  <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                                    {remainingDoses}
-                                  </div>
-                                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                                    Doses Left
-                                  </div>
-                                </div>
-                                
-                                {/* Progress Bar */}
-                                <div className="space-y-1">
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-600 dark:text-gray-400">Taken: {dosesTaken[medication.id] || 0}</span>
-                                    <span className="text-gray-600 dark:text-gray-400">Total: {medication.totalDoses}</span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                    <div 
-                                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                      style={{ 
-                                        width: `${medication.totalDoses ? ((dosesTaken[medication.id] || 0) / medication.totalDoses) * 100 : 0}%` 
-                                      }}
-                                    ></div>
-                                  </div>
-                                </div>
-                                
-                                {/* Status Indicators */}
-                                <div className="flex justify-center mt-2">
-                                  <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
-                                    remainingDoses === 0
-                                      ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30'
-                                      : 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30'
-                                  }`}>
-                                    {remainingDoses === 0 ? (
-                                      <>
-                                        <Check className="w-3 h-3" />
-                                        Course Complete! 🎉
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Clock className="w-3 h-3" />
-                                        {remainingDoses} dose{remainingDoses !== 1 ? 's' : ''} remaining
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
+                          </div>
+
+                          {/* Main content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="truncate">
+                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{medication.name}</h4>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{medication.dosage} • {medication.frequency}</div>
+                              </div>
+                              <div className="text-right ml-4">
+                                <div className="text-sm font-medium text-gray-700 dark:text-gray-200">{medication.prescribedBy || 'Prescribed'}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">{medication.startDate ? new Date(medication.startDate).toLocaleDateString() : ''}</div>
+                              </div>
+                            </div>
+
+                            {medication.instructions && (
+                              <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 text-amber-500" />
+                                <span className="truncate">{medication.instructions}</span>
                               </div>
                             )}
-                            
-                            {medication.instructions && (
-                              <div className="flex items-center gap-1 mb-2">
-                                <AlertCircle className="w-3 h-3 text-amber-500" />
-                                <span className="text-xs text-amber-600 dark:text-gray-400">{medication.instructions}</span>
-                              </div>
+                          </div>
+
+                          {/* Right: circular progress + remaining badge */}
+                          <div className="flex flex-col items-center gap-2">
+                            {medication.totalDoses ? (
+                              (() => {
+                                const taken = dosesTaken[medication.id] || 0;
+                                const percent = Math.round((taken / medication.totalDoses) * 100);
+                                return (
+                                  <div className="flex items-center flex-col">
+                                    {/* Simple circular progress using SVG */}
+                                    <svg className="w-16 h-16" viewBox="0 0 36 36">
+                                      <path className="text-gray-200" d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831 15.9155 15.9155 0 0 1 0-31.831" fill="none" strokeWidth="3" stroke="currentColor" strokeOpacity="0.15" />
+                                      <path
+                                        d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831" 
+                                        fill="none"
+                                        strokeWidth="3"
+                                        stroke="#3b82f6"
+                                        strokeDasharray={`${percent} ${100 - percent}`}
+                                        strokeLinecap="round"
+                                      />
+                                      <text x="18" y="20.5" textAnchor="middle" fontSize="6" fill="#0f172a" className="dark:fill-white">{percent}%</text>
+                                    </svg>
+
+                                    <div className={`mt-1 text-xs font-semibold px-2 py-1 rounded-full ${remainingDoses === 0 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
+                                      {remainingDoses} left
+                                    </div>
+                                  </div>
+                                );
+                              })()
+                            ) : (
+                              <div className="text-sm text-gray-500">No doses</div>
                             )}
                           </div>
                         </div>
-                        
-                        {/* Buttons moved to center below the content */}
-                        <div className="flex justify-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                          {/* Dose Tracking Buttons */}
-                          {medication.totalDoses && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => markDoseTaken(medication.id)}
-                                disabled={remainingDoses === 0}
-                                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold text-xs px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md flex items-center gap-2 min-w-[100px] justify-center"
-                              >
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                                <span>Mark Taken</span>
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => markDoseUntaken(medication.id)}
-                                disabled={(dosesTaken[medication.id] || 0) === 0}
-                                className="bg-gradient-to-r from-slate-500 to-gray-600 hover:from-slate-600 hover:to-gray-700 text-white font-semibold text-xs px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md flex items-center gap-2 min-w-[100px] justify-center"
-                              >
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                                <span>Revert Dose</span>
-                              </Button>
-                            </>
-                          )}
-                          
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => deleteMedication(medication.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 px-2 py-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+
+                        {/* Actions */}
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => markDoseTaken(medication.id)}
+                              disabled={remainingDoses === 0}
+                              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
+                            >
+                              <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2"></div>
+                              Mark Taken
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => markDoseUntaken(medication.id)}
+                              disabled={(dosesTaken[medication.id] || 0) === 0}
+                              className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
+                            >
+                              Revert
+                            </Button>
+                          </div>
+
+                          <div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteMedication(medication.id)}
+                              disabled={deletingMedications.has(medication.id)}
+                              className="text-red-600 hover:text-red-700 px-2 py-1 disabled:opacity-60"
+                            >
+                              {deletingMedications.has(medication.id) ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse" />
+                                  Deleting...
+                                </div>
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -600,9 +554,17 @@ export function MedicationReminders({ showAddButton = true }: MedicationReminder
                             size="sm"
                             variant="ghost"
                             onClick={() => deleteMedication(medication.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 px-2 py-1"
+                            disabled={deletingMedications.has(medication.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 px-2 py-1 disabled:opacity-60"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {deletingMedications.has(medication.id) ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse" />
+                                Deleting...
+                              </div>
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </Button>
                         </div>
                       ))}

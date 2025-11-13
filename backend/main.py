@@ -472,18 +472,67 @@ async def assess_symptoms(request: SymptomAssessmentRequest):
     print(f"DEBUG: LLM available: {llm is not None}")
     
     # Check if LLM is available
-    if llm is None:
-        print("DEBUG: LLM not available, returning fallback response")
-        return {
-            "riskLevel": "unknown",
-            "conditions": [{"name": "Service Unavailable", "probability": 0, "urgent": False, "description": "AI service unavailable"}],
-            "immediateActions": ["Consult a healthcare professional for medical advice"],
-            "precautions": ["Monitor your symptoms closely"],
-            "medications": ["No medications recommended without professional consultation"],
-            "lifestyleChanges": ["Maintain healthy habits"],
-            "whenToSeekHelp": ["If symptoms worsen or become severe"],
-            "followUp": "Please consult a qualified healthcare provider for proper diagnosis and treatment."
-        }
+    # If LLM is available, ask it to return a structured JSON response matching our schema
+    if llm is not None:
+        try:
+            # Build a concise prompt asking for JSON output
+            symptom_list = []
+            for s in request.symptoms:
+                item = {"name": s.get("name"), "severity": s.get("severity"), "bodyPart": s.get("bodyPart", None)}
+                symptom_list.append(item)
+
+            prompt = (
+                "You are a medical symptom analyzer. Receive a JSON array called 'symptoms' where each item has 'name', 'severity' and optional 'bodyPart'.\n"
+                "Return a single JSON object (no extra text) with the following keys: riskLevel (one of urgent/high/moderate/low/unknown), summary (short text), conditions (array of {name, probability, urgent (bool), description}), immediateActions (array of strings), precautions (array of strings), medications (array of strings), lifestyleChanges (array of strings), whenToSeekHelp (array of strings), followUp (string).\n"
+                "Use conservative medical language and prioritize patient safety. Here are the symptoms:\n"
+                + json.dumps({"symptoms": symptom_list})
+            )
+
+            print("DEBUG: Invoking LLM for structured symptom analysis")
+            llm_response = llm.invoke(prompt)
+            print("DEBUG: Raw LLM response:", llm_response)
+
+            # Extract text content
+            if hasattr(llm_response, "content") and llm_response.content:
+                resp_text = llm_response.content
+            elif hasattr(llm_response, "text") and llm_response.text:
+                resp_text = llm_response.text
+            else:
+                resp_text = str(llm_response)
+
+            # Try to parse JSON out of the response
+            parsed = None
+            try:
+                parsed = json.loads(resp_text)
+            except Exception:
+                # Try to find a JSON object in the text
+                try:
+                    m = re.search(r"\{[\s\S]*\}", resp_text)
+                    if m:
+                        parsed = json.loads(m.group(0))
+                except Exception as e:
+                    print("DEBUG: Failed to parse JSON from LLM response:", e)
+
+            if parsed and isinstance(parsed, dict):
+                # Ensure all required keys exist with safe defaults
+                parsed.setdefault("riskLevel", "unknown")
+                parsed.setdefault("summary", "")
+                parsed.setdefault("conditions", [])
+                parsed.setdefault("immediateActions", [])
+                parsed.setdefault("precautions", [])
+                parsed.setdefault("medications", [])
+                parsed.setdefault("lifestyleChanges", [])
+                parsed.setdefault("whenToSeekHelp", [])
+                parsed.setdefault("followUp", "")
+                print("DEBUG: Returning parsed structured response from LLM")
+                return parsed
+            else:
+                print("DEBUG: LLM did not return parseable JSON, falling back to rule-based response")
+        except Exception as e:
+            print(f"ERROR while invoking LLM for symptoms: {e}")
+            # Continue to rule-based logic below
+    else:
+        print("DEBUG: LLM not available, proceeding with rule-based response")
     
     try:
         print("DEBUG: Entering try block")
