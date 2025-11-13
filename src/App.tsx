@@ -118,7 +118,7 @@ function Dashboard() {
   console.log('Dashboard render - activeTab:', activeTab, 'loading:', loading, 'error:', error, 'healthStatus:', healthStatus);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-emerald-50/20 dark:from-gray-900 dark:via-blue-900/10 dark:to-emerald-900/10 transition-all duration-300">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -127,13 +127,22 @@ function Dashboard() {
         {activeTab !== 'chat' && <Header />}
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
           {loading ? (
-            <div className="p-6 text-center">
-              <div className="text-gray-500">Loading dashboard...</div>
-              <div className="text-sm text-gray-400 mt-2">Checking backend connection...</div>
+            <div className="p-8 text-center">
+              <div className="inline-block p-6 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-lg backdrop-blur-sm border border-gray-200 dark:border-gray-700">
+                <div className="text-gray-600 dark:text-gray-300 text-lg font-medium mb-2">Loading dashboard...</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Checking backend connection...</div>
+                <div className="flex justify-center mt-4 gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-3 h-3 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
             </div>
           ) : error && healthStatus !== 'unavailable' && healthStatus !== 'timeout' ? (
-            <div className="p-6 text-center text-red-500">
-              <div>Error: {error}</div>
+            <div className="p-8 text-center">
+              <div className="inline-block p-6 bg-red-50/80 dark:bg-red-900/20 rounded-2xl shadow-lg backdrop-blur-sm border-2 border-red-200 dark:border-red-700">
+                <div className="text-red-600 dark:text-red-400 text-lg font-medium">Error: {error}</div>
+              </div>
             </div>
           ) : (
             <>
