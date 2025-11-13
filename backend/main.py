@@ -154,7 +154,7 @@ try:
     print(f"DEBUG: Google API key found: {api_key is not None}")
     if api_key and api_key != "your_google_api_key_here":
         print("DEBUG: Initializing LLM with Google API key")
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
         print("DEBUG: LLM initialized successfully")
     else:
         print("Warning: Google API key not set. AI features will be limited.")
@@ -261,7 +261,6 @@ graph.add_node("llm_node", llm_node)
 graph.set_entry_point("llm_node")
 graph.add_edge("llm_node", END)
 chat_workflow = graph.compile()
-
 class MedicationResponse(BaseModel):
     id: str
     name: str
